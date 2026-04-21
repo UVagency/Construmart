@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#041E42">
+  <title>Construmart · Historias de pasillo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Inter:wght@400;600;800&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body class="bg-cm-navy text-white no-select">
+  <!-- Franja amarilla superior tipo "construcción" -->
+  <div class="cm-stripes h-1.5 w-full"></div>
+
+  <main class="screen">
+    <img src="/logo-construmart.png" alt="Construmart" class="w-48 max-w-[55vw] mb-8 brightness-0 invert" />
+
+    <div class="mb-3 text-white/70 text-[11px] tracking-[0.35em] font-semibold">PRESENTA</div>
+
+    <h1 class="font-display uppercase text-cm-yellow text-[15vw] md:text-7xl font-extrabold leading-[0.9] tracking-tight mb-2">
+      Historias<br>
+      <span class="inline-flex items-baseline gap-3">
+        <span class="text-white/40 font-display text-[0.5em] font-semibold">de</span>
+        pasillo
+      </span>
+    </h1>
+    <div class="cm-stripes h-1 w-32 mb-6"></div>
+
+    <p class="max-w-md text-white/85 mb-2 font-semibold">
+      Cada pasillo esconde algo que no está en el precio.
+    </p>
+    <p class="max-w-md text-white/60 mb-10 text-sm">
+      Encontrá 4 objetos escondidos entre los productos, destapá su historia y ganá un descuento para canjear en caja.
+    </p>
+
+    <form id="lead-form" class="w-full max-w-sm space-y-3 mb-6">
+      <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="tu@email.com (opcional)"
+        autocomplete="email"
+        class="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cm-yellow"
+      >
+      <input
+        type="tel"
+        id="phone"
+        name="phone"
+        placeholder="+56 9 1234 5678 (opcional)"
+        autocomplete="tel"
+        class="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cm-yellow"
+      >
+    </form>
+
+    <button
+      id="start-btn"
+      class="btn-pulse bg-cm-yellow text-cm-navy font-extrabold text-lg px-10 py-4 rounded-md shadow-lg active:scale-95 transition font-display uppercase tracking-wide"
+    >
+      Empezar a jugar
+    </button>
+
+    <p class="text-xs text-white/50 mt-8 max-w-xs">
+      Al tocar "Empezar" aceptás el uso del sensor de movimiento del dispositivo para la experiencia 360°.
+    </p>
+
+    <!-- Co-branding agencia, discreto -->
+    <div class="mt-12 text-[10px] text-white/30 tracking-widest">
+      EXPERIENCIA POR UV AGENCY
+    </div>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

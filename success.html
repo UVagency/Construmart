@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#041E42">
+  <title>Construmart · Historias de pasillo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Inter:wght@400;600;800&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body class="bg-cm-navy text-white no-select">
+  <div class="cm-stripes h-1.5 w-full"></div>
+
+  <main class="screen">
+    <img src="/logo-construmart.png" alt="Construmart" class="w-36 max-w-[45vw] mb-4 brightness-0 invert" />
+    <div class="text-cm-yellow text-[10px] tracking-[0.35em] font-bold mb-6">HISTORIAS DE PASILLO</div>
+
+    <h1 class="font-display uppercase text-4xl md:text-5xl font-extrabold mb-2 leading-[0.95]">
+      ¡Bien jugado!
+    </h1>
+    <p class="text-white/80 mb-6 max-w-sm">
+      Destapaste las 4 historias. Este es tu cupón.
+    </p>
+
+    <!-- Tarjeta cupón -->
+    <div id="coupon-card" class="relative bg-white text-cm-navy rounded-xl w-full max-w-sm shadow-2xl mb-5 overflow-hidden">
+      <div class="cm-stripes h-2 w-full"></div>
+      <div class="px-6 py-6 text-center">
+        <div class="text-[10px] uppercase tracking-[0.3em] text-cm-blue font-bold mb-2">Tu código</div>
+        <div id="coupon-code" class="text-3xl font-extrabold tracking-widest font-mono text-cm-navy mb-4">
+          ——————
+        </div>
+        <!-- QR del código (se inyecta por JS) -->
+        <div id="qr-container" class="flex items-center justify-center">
+          <div class="w-48 h-48 bg-cm-gray rounded-md flex items-center justify-center text-cm-navy/40 text-xs">
+            Generando QR...
+          </div>
+        </div>
+        <div class="text-xs text-cm-navy/60 mt-3">Mostrá este código en caja</div>
+      </div>
+      <div class="h-px w-full border-t border-dashed border-cm-navy/20"></div>
+      <div class="px-6 py-3 text-xs text-cm-navy/60 flex items-center justify-between">
+        <span>Canje en caja</span>
+        <span class="font-display uppercase tracking-widest font-bold text-cm-navy/80">Construmart</span>
+      </div>
+    </div>
+
+    <!-- Acciones grandes, pensadas para uso rápido en tienda -->
+    <div class="w-full max-w-sm space-y-3">
+      <!-- Primario: guardar en el celular -->
+      <button
+        id="save-btn"
+        class="w-full bg-cm-yellow text-cm-navy font-extrabold px-6 py-4 rounded-lg active:scale-95 transition font-display uppercase tracking-wide text-lg flex items-center justify-center gap-3"
+      >
+        <!-- icono descarga -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>Guardar cupón</span>
+      </button>
+
+      <!-- Secundario: pantalla completa para mostrar en caja -->
+      <button
+        id="fullscreen-btn"
+        class="w-full bg-white/10 border border-white/20 text-white font-bold px-6 py-3 rounded-lg active:scale-95 transition flex items-center justify-center gap-3"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 3 21 3 21 9"/>
+          <polyline points="9 21 3 21 3 15"/>
+          <line x1="21" y1="3" x2="14" y2="10"/>
+          <line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+        <span>Mostrar en pantalla completa</span>
+      </button>
+    </div>
+
+    <a href="/" class="text-white/50 text-sm underline mt-6">Volver al inicio</a>
+
+    <p class="text-xs text-white/40 mt-6 max-w-xs">
+      El cupón es personal, único y no acumulable con otras promociones.
+    </p>
+
+    <div class="mt-8 text-[10px] text-white/30 tracking-widest">
+      EXPERIENCIA POR UV AGENCY
+    </div>
+  </main>
+
+  <!-- Overlay pantalla completa para caja -->
+  <div id="fs-overlay" class="hidden fixed inset-0 z-40 bg-cm-navy flex flex-col">
+    <div class="cm-stripes h-2 w-full flex-shrink-0"></div>
+    <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+      <div class="text-cm-yellow text-xs tracking-[0.3em] font-bold mb-4">MOSTRÁ EN CAJA</div>
+      <div id="fs-qr" class="bg-white p-4 rounded-2xl mb-6"></div>
+      <div id="fs-code" class="text-white font-mono font-extrabold tracking-widest text-3xl">——</div>
+    </div>
+    <div class="cm-stripes h-2 w-full flex-shrink-0"></div>
+    <button id="fs-close" class="absolute top-4 right-4 bg-white/10 border border-white/20 text-white rounded-full w-10 h-10 flex items-center justify-center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Toast de feedback -->
+  <div id="toast" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 bg-cm-yellow text-cm-navy font-bold px-5 py-3 rounded-lg shadow-xl z-50"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#041E42">
+  <title>Construmart · Historias de pasillo</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Inter:wght@400;600;800&display=swap">
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body class="bg-cm-navy text-white no-select overflow-hidden">
+  <!-- HUD Overlay -->
+  <div id="hud" class="fixed top-0 left-0 right-0 z-10 bg-gradient-to-b from-cm-navy/85 to-transparent">
+    <div class="cm-stripes h-1 w-full"></div>
+    <div class="px-3 pt-3 pb-4 flex justify-between items-center gap-2">
+      <img src="/logo-construmart.png" alt="Construmart" class="h-5 brightness-0 invert shrink-0" />
+
+      <!-- Contador compacto en píldora amarilla para máxima legibilidad en tienda -->
+      <div class="bg-cm-yellow text-cm-navy rounded-full px-3 py-1 flex items-center gap-1.5 shadow-md">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <span class="font-display font-extrabold text-base leading-none">
+          <span id="counter">0</span><span class="opacity-60">/</span><span id="total">4</span>
+        </span>
+      </div>
+
+      <button id="help-btn" aria-label="Cómo jugar" class="shrink-0 bg-white/10 border border-white/25 text-white rounded-full w-9 h-9 flex items-center justify-center font-bold text-lg active:scale-95 transition">
+        ?
+      </button>
+    </div>
+    <!-- Claim sutil debajo del HUD -->
+    <div class="text-center -mt-2 mb-1">
+      <span class="text-[9px] tracking-[0.3em] text-cm-yellow/70 font-bold uppercase">Historias de pasillo</span>
+    </div>
+  </div>
+
+  <!-- Help modal -->
+  <div id="help-modal" class="hidden fixed inset-0 z-20 bg-cm-navy/90 flex items-center justify-center p-6">
+    <div class="bg-white text-cm-navy rounded-xl max-w-sm w-full p-6 text-left shadow-2xl border-t-4 border-cm-yellow">
+      <div class="text-cm-blue text-[10px] tracking-[0.3em] font-bold mb-1">HISTORIAS DE PASILLO</div>
+      <h2 class="font-display uppercase text-2xl font-extrabold mb-3">¿Cómo jugar?</h2>
+      <ul class="text-cm-navy/80 space-y-2 text-sm list-disc pl-5">
+        <li>Mové el celular para recorrer el pasillo.</li>
+        <li>Buscá <strong>4 historias escondidas</strong> entre los productos.</li>
+        <li>Tocá los círculos amarillos cuando los veas.</li>
+        <li>Al destapar las 4, ganás un cupón para canje en caja.</li>
+      </ul>
+      <button id="help-close" class="mt-5 w-full bg-cm-yellow text-cm-navy font-extrabold py-3 rounded-md font-display uppercase tracking-wide">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Completion overlay -->
+  <div id="complete-overlay" class="hidden fixed inset-0 z-30 bg-cm-navy/95 flex items-center justify-center p-6">
+    <div class="text-center">
+      <div class="cm-stripes h-1 w-24 mx-auto mb-6"></div>
+      <div class="text-cm-yellow text-xs tracking-[0.3em] mb-4 font-bold">DESTAPASTE LAS 4 HISTORIAS</div>
+      <div class="text-6xl mb-4">🎯</div>
+      <p class="text-white/80 mb-6">Generando tu cupón...</p>
+      <div class="inline-block w-8 h-8 border-4 border-cm-yellow border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  </div>
+
+  <!-- A-Frame Scene -->
+  <a-scene
+    vr-mode-ui="enabled: false"
+    loading-screen="dotsColor: #FFB81C; backgroundColor: #041E42"
+    renderer="antialias: true; colorManagement: true"
+  >
+    <a-assets>
+      <!-- TODO: reemplazar /360/tienda-01.jpg con foto 360 real de la tienda (equirectangular, 4096x2048 mín) -->
+      <img id="sky360" src="/360/tienda-01.jpg" crossorigin="anonymous">
+      <!-- TODO: agregar public/assets/found.mp3 (sonido al encontrar objeto) -->
+      <audio id="found-sfx" src="/assets/found.mp3" preload="auto"></audio>
+    </a-assets>
+
+    <!-- Skybox 360 -->
+    <a-sky src="#sky360" rotation="0 -90 0"></a-sky>
+
+    <!-- Hotspots (amarillo Construmart, posicionar con foto real en iteración 2) -->
+    <a-entity id="hotspot-1"
+              class="hotspot clickable"
+              geometry="primitive: sphere; radius: 0.3"
+              material="color: #FFB81C; opacity: 0.55; transparent: true; emissive: #FFB81C; emissiveIntensity: 0.4"
+              position="3 1 -5"
+              animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true"
+              data-id="1">
+    </a-entity>
+
+    <a-entity id="hotspot-2"
+              class="hotspot clickable"
+              geometry="primitive: sphere; radius: 0.3"
+              material="color: #FFB81C; opacity: 0.55; transparent: true; emissive: #FFB81C; emissiveIntensity: 0.4"
+              position="-4 0.5 -3"
+              animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true"
+              data-id="2">
+    </a-entity>
+
+    <a-entity id="hotspot-3"
+              class="hotspot clickable"
+              geometry="primitive: sphere; radius: 0.3"
+              material="color: #FFB81C; opacity: 0.55; transparent: true; emissive: #FFB81C; emissiveIntensity: 0.4"
+              position="2 -1 4"
+              animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true"
+              data-id="3">
+    </a-entity>
+
+    <a-entity id="hotspot-4"
+              class="hotspot clickable"
+              geometry="primitive: sphere; radius: 0.3"
+              material="color: #FFB81C; opacity: 0.55; transparent: true; emissive: #FFB81C; emissiveIntensity: 0.4"
+              position="-3 2 3"
+              animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true"
+              data-id="4">
+    </a-entity>
+
+    <!-- Camera con cursor + raycaster para tap mobile -->
+    <a-entity camera
+              look-controls="touchEnabled: true; magicWindowTrackingEnabled: true"
+              position="0 1.6 0">
+      <a-cursor raycaster="objects: .clickable; far: 30" visible="false"></a-cursor>
+    </a-entity>
+  </a-scene>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
