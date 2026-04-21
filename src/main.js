@@ -54,15 +54,33 @@ async function requestMotionPermission() {
 // Experience: arranca el juego una vez que A-Frame está listo
 // ─────────────────────────────────────────────────────────────
 function initExperience() {
+  const SPLASH_MIN_MS = 1200; // asegurar visibilidad del branding aunque cargue rápido
+  const splashStart = performance.now();
+
   import('./game.js').then(({ initGame }) => {
     const scene = document.querySelector('a-scene');
     if (!scene) return;
-    if (scene.hasLoaded) {
+
+    const boot = () => {
       initGame();
-    } else {
-      scene.addEventListener('loaded', () => initGame(), { once: true });
-    }
+      hideSplash(splashStart, SPLASH_MIN_MS);
+    };
+
+    if (scene.hasLoaded) boot();
+    else scene.addEventListener('loaded', boot, { once: true });
   });
+}
+
+function hideSplash(startedAt, minMs) {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  const elapsed = performance.now() - startedAt;
+  const wait = Math.max(0, minMs - elapsed);
+  setTimeout(() => {
+    splash.style.opacity = '0';
+    splash.style.pointerEvents = 'none';
+    setTimeout(() => splash.remove(), 500);
+  }, wait);
 }
 
 // ─────────────────────────────────────────────────────────────
