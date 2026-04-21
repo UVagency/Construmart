@@ -13,6 +13,16 @@
   <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body class="bg-cm-navy text-white no-select overflow-hidden">
+  <!-- Splash / Loading screen — único lugar donde usamos la versión stacked del logo -->
+  <div id="splash" class="fixed inset-0 z-50 bg-cm-navy flex flex-col items-center justify-center p-8 transition-opacity duration-500">
+    <div class="cm-stripes h-1.5 w-full absolute top-0 left-0"></div>
+    <img src="/logo-construmart-stacked.jpg" alt="Construmart" class="w-56 max-w-[60vw] rounded-2xl shadow-2xl mb-8" />
+    <div class="text-cm-yellow text-xs tracking-[0.35em] font-bold mb-3">HISTORIAS DE PASILLO</div>
+    <div class="text-white/60 text-sm text-center max-w-xs mb-6">Preparando la experiencia...</div>
+    <div class="inline-block w-8 h-8 border-4 border-cm-yellow border-t-transparent rounded-full animate-spin"></div>
+    <div class="cm-stripes h-1.5 w-full absolute bottom-0 left-0"></div>
+  </div>
+
   <!-- HUD Overlay -->
   <div id="hud" class="fixed top-0 left-0 right-0 z-10 bg-gradient-to-b from-cm-navy/85 to-transparent">
     <div class="cm-stripes h-1 w-full"></div>
@@ -68,7 +78,7 @@
   <!-- A-Frame Scene -->
   <a-scene
     vr-mode-ui="enabled: false"
-    loading-screen="dotsColor: #FFB81C; backgroundColor: #041E42"
+    loading-screen="enabled: false"
     renderer="antialias: true; colorManagement: true"
   >
     <a-assets>
