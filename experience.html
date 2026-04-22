@@ -23,8 +23,9 @@
     <div class="cm-stripes h-1.5 w-full absolute bottom-0 left-0"></div>
   </div>
 
-  <!-- HUD Overlay -->
-  <div id="hud" class="fixed top-0 left-0 right-0 z-10 bg-gradient-to-b from-cm-navy/85 to-transparent">
+  <!-- HUD Overlay — pointer-events-none en el contenedor para no bloquear taps sobre los hotspots
+       que queden debajo de la barra; los elementos interactivos los re-habilitan con pointer-events-auto. -->
+  <div id="hud" class="fixed top-0 left-0 right-0 z-10 bg-gradient-to-b from-cm-navy/85 to-transparent pointer-events-none">
     <div class="cm-stripes h-1 w-full"></div>
     <div class="px-3 pt-3 pb-4 flex justify-between items-center gap-2">
       <img src="/logo-construmart.png" alt="Construmart" class="h-5 brightness-0 invert shrink-0" />
@@ -39,7 +40,7 @@
         </span>
       </div>
 
-      <button id="help-btn" aria-label="Cómo jugar" class="shrink-0 bg-white/10 border border-white/25 text-white rounded-full w-9 h-9 flex items-center justify-center font-bold text-lg active:scale-95 transition">
+      <button id="help-btn" aria-label="Cómo jugar" class="shrink-0 bg-white/10 border border-white/25 text-white rounded-full w-9 h-9 flex items-center justify-center font-bold text-lg active:scale-95 transition pointer-events-auto">
         ?
       </button>
     </div>
@@ -76,6 +77,9 @@
   </div>
 
   <!-- A-Frame Scene -->
+  <!-- Los taps los resuelve game.js con raycasting manual sobre el canvas (touchend).
+       El cursor/raycaster nativos de A-Frame pelean con look-controls en mobile,
+       así que los dejamos afuera a propósito. -->
   <a-scene
     vr-mode-ui="enabled: false"
     loading-screen="enabled: false"
@@ -128,11 +132,10 @@
               data-id="4">
     </a-entity>
 
-    <!-- Camera con cursor + raycaster para tap mobile -->
+    <!-- Camera sin cursor (el cursor vive en <a-scene> con rayOrigin: mouse) -->
     <a-entity camera
               look-controls="touchEnabled: true; magicWindowTrackingEnabled: true"
               position="0 1.6 0">
-      <a-cursor raycaster="objects: .clickable; far: 30" visible="false"></a-cursor>
     </a-entity>
   </a-scene>
 
