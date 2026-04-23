@@ -36,7 +36,7 @@
           <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <span class="font-display font-extrabold text-base leading-none">
-          <span id="counter">0</span><span class="opacity-60">/</span><span id="total">4</span>
+          <span id="counter">0</span><span class="opacity-60">/</span><span id="total">3</span>
         </span>
       </div>
 
@@ -57,9 +57,9 @@
       <h2 class="font-display uppercase text-2xl font-extrabold mb-3">¿Cómo jugar?</h2>
       <ul class="text-cm-navy/80 space-y-2 text-sm list-disc pl-5">
         <li>Mueve el celular para recorrer el pasillo.</li>
-        <li>Busca <strong>4 historias escondidas</strong> entre los productos.</li>
+        <li>Busca <strong>3 historias escondidas</strong> entre los productos.</li>
         <li>Toca los círculos amarillos cuando los veas.</li>
-        <li>Al destapar las 4, ganas un cupón para canje en caja.</li>
+        <li>Mira las 3 historias completas y ganas un cupón para canje en caja.</li>
       </ul>
       <button id="help-close" class="mt-5 w-full bg-cm-yellow text-cm-navy font-extrabold py-3 rounded-md font-display uppercase tracking-wide">Entendido</button>
     </div>
@@ -69,7 +69,7 @@
   <div id="complete-overlay" class="hidden fixed inset-0 z-30 bg-cm-navy/95 flex items-center justify-center p-6">
     <div class="text-center">
       <div class="cm-stripes h-1 w-24 mx-auto mb-6"></div>
-      <div class="text-cm-yellow text-xs tracking-[0.3em] mb-4 font-bold">DESTAPASTE LAS 4 HISTORIAS</div>
+      <div class="text-cm-yellow text-xs tracking-[0.3em] mb-4 font-bold">VISTE LAS 3 HISTORIAS</div>
       <div class="text-6xl mb-4">🎯</div>
       <p class="text-white/80 mb-6">Generando tu cupón...</p>
       <div class="inline-block w-8 h-8 border-4 border-cm-yellow border-t-transparent rounded-full animate-spin"></div>
@@ -122,21 +122,18 @@
               data-id="3">
     </a-entity>
 
-    <a-entity id="hotspot-4"
-              class="hotspot clickable"
-              geometry="primitive: sphere; radius: 0.3"
-              material="color: #FFB81C; opacity: 0.55; transparent: true; emissive: #FFB81C; emissiveIntensity: 0.4"
-              position="-3 2 3"
-              animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 1000; loop: true"
-              data-id="4">
-    </a-entity>
-
     <!-- Camera sin cursor (el cursor vive en <a-scene> con rayOrigin: mouse) -->
     <a-entity camera
               look-controls="touchEnabled: true; magicWindowTrackingEnabled: true"
               position="0 1.6 0">
     </a-entity>
   </a-scene>
+
+  <!-- Reproductor de historias (fullscreen nativo al tocar un hotspot) -->
+  <video id="story-video"
+         class="hidden fixed inset-0 z-40 w-full h-full bg-black object-contain"
+         preload="auto"
+         playsinline></video>
 
   <script type="module" src="/src/main.js"></script>
 </body>

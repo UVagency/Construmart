@@ -1,5 +1,6 @@
-const TOTAL_HOTSPOTS = 4;
+const TOTAL_HOTSPOTS = 3;
 const found = new Set();
+let storyPlaying = false;
 
 // Tolerancias para distinguir tap de drag (look-controls usa drag para girar la cámara).
 const TAP_MAX_DIST = 12;   // px de movimiento tolerado
@@ -93,10 +94,19 @@ function setupTapHandler() {
   else scene.addEventListener('loaded', attach, { once: true });
 }
 
-async function handleHotspotClick(el) {
+function handleHotspotClick(el) {
   const id = el.dataset.id;
-  if (found.has(id)) return;
+  if (found.has(id) || storyPlaying) return;
 
+  // Reproducimos el video ANTES de marcar como encontrado. Si el usuario sale antes
+  // del final, el hotspot sigue disponible para reintentar.
+  playStory(id, (completed) => {
+    if (!completed) return;
+    markFound(el, id);
+  });
+}
+
+function markFound(el, id) {
   found.add(id);
 
   el.setAttribute('material', 'color: #2A5DB9; opacity: 0.9; emissive: #2A5DB9; emissiveIntensity: 0.6');
@@ -113,6 +123,75 @@ async function handleHotspotClick(el) {
 
   if (found.size === TOTAL_HOTSPOTS) {
     setTimeout(() => completeGame(), 800);
+  }
+}
+
+function playStory(id, onDone) {
+  const video = document.getElementById('story-video');
+  if (!video) { onDone(true); return; }
+
+  storyPlaying = true;
+  let resolved = false;
+  const finish = (completed) => {
+    if (resolved) return;
+    resolved = true;
+    storyPlaying = false;
+    onDone(completed);
+  };
+
+  const cleanup = () => {
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    video.classList.add('hidden');
+    video.removeEventListener('ended', onEnded);
+    video.removeEventListener('webkitendfullscreen', onFsExit);
+    document.removeEventListener('fullscreenchange', onFsChange);
+  };
+
+  const exitFs = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.().catch(() => {});
+    }
+  };
+
+  const onEnded = () => {
+    exitFs();
+    cleanup();
+    finish(true);
+  };
+
+  // iOS dispara este evento al salir de fullscreen nativo. Si el video terminó,
+  // `ended` habrá disparado antes; si no, el usuario cerró antes del final.
+  const onFsExit = () => {
+    const nearEnd = video.duration && video.currentTime >= video.duration - 0.3;
+    cleanup();
+    finish(nearEnd);
+  };
+
+  const onFsChange = () => {
+    if (document.fullscreenElement) return;
+    const nearEnd = video.duration && video.currentTime >= video.duration - 0.3;
+    cleanup();
+    finish(nearEnd);
+  };
+
+  video.src = `/assets/historia${id}.mp4`;
+  video.currentTime = 0;
+  video.classList.remove('hidden');
+  video.addEventListener('ended', onEnded);
+  video.addEventListener('webkitendfullscreen', onFsExit);
+  document.addEventListener('fullscreenchange', onFsChange);
+
+  const playPromise = video.play();
+  if (playPromise && typeof playPromise.catch === 'function') {
+    playPromise.catch((err) => console.warn('[game] video play error', err));
+  }
+
+  if (typeof video.webkitEnterFullscreen === 'function') {
+    try { video.webkitEnterFullscreen(); } catch (_) { /* fallback inline */ }
+  } else if (video.requestFullscreen) {
+    video.requestFullscreen().catch(() => { /* se reproduce inline */ });
   }
 }
 
