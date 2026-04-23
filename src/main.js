@@ -27,6 +27,10 @@ function initLanding() {
     // iOS 13+ requiere permiso explícito de DeviceMotion con un tap del usuario.
     await requestMotionPermission();
 
+    // Marca que el usuario arrancó desde el landing — /experience valida este flag
+    // y redirige a / si falta (evita entrar directo y saltearse el permiso de giroscopio).
+    sessionStorage.setItem('entered_from_landing', '1');
+
     window.location.href = '/experience.html';
   });
 }
@@ -54,6 +58,14 @@ async function requestMotionPermission() {
 // Experience: arranca el juego una vez que A-Frame está listo
 // ─────────────────────────────────────────────────────────────
 function initExperience() {
+  // Gate: si el usuario entró directo a /experience (sin pasar por el landing),
+  // no tenemos el permiso de DeviceMotion de iOS 13+ — replace() evita que "atrás"
+  // vuelva a /experience sin permiso.
+  if (!sessionStorage.getItem('entered_from_landing')) {
+    window.location.replace('/');
+    return;
+  }
+
   const SPLASH_MIN_MS = 1200; // asegurar visibilidad del branding aunque cargue rápido
   const splashStart = performance.now();
 
