@@ -10,11 +10,26 @@ export async function initGame() {
   console.info('[game] session:', `local-${Date.now()}`);
 
   setupTapHandler();
+  orientCoinsToCamera();
 
   const total = document.getElementById('total');
   if (total) total.textContent = String(TOTAL_HOTSPOTS);
 
   wireHelpModal();
+}
+
+function orientCoinsToCamera() {
+  const scene = document.querySelector('a-scene');
+  if (!scene) return;
+  const run = () => {
+    const cam = scene.camera;
+    const camPos = cam ? cam.getWorldPosition(new window.THREE.Vector3()) : new window.THREE.Vector3(0, 1.6, 0);
+    document.querySelectorAll('.hotspot-anchor').forEach((el) => {
+      const apply = () => el.object3D.lookAt(camPos);
+      if (el.hasLoaded) apply(); else el.addEventListener('loaded', apply, { once: true });
+    });
+  };
+  if (scene.hasLoaded) run(); else scene.addEventListener('loaded', run, { once: true });
 }
 
 function setupTapHandler() {
