@@ -156,6 +156,22 @@ function playStory(id, onDone) {
     onDone(completed);
   };
 
+  // iOS a veces no dispara `ended` en video inline, o lo dispara después de que
+  // el overlay se cerró y `duration` se volvió NaN. En vez de confiar solo en
+  // `ended`, trackeamos progreso real vía `timeupdate` y consideramos "visto"
+  // si el usuario llegó al ≥ 90% o si `ended` disparó.
+  let maxProgress = 0;
+  let endedFired = false;
+
+  const onTimeUpdate = () => {
+    if (video.duration > 0) {
+      const p = video.currentTime / video.duration;
+      if (p > maxProgress) maxProgress = p;
+    }
+  };
+
+  const wasWatched = () => endedFired || maxProgress >= 0.9;
+
   const cleanup = () => {
     video.pause();
     video.removeAttribute('src');
@@ -163,18 +179,22 @@ function playStory(id, onDone) {
     video.load();
     overlay.classList.add('hidden');
     video.removeEventListener('ended', onEnded);
+    video.removeEventListener('timeupdate', onTimeUpdate);
     closeBtn?.removeEventListener('click', onClose);
   };
 
   const onEnded = () => {
+    endedFired = true;
+    console.info('[story] ended', id, 'progress=', maxProgress.toFixed(2));
     cleanup();
     finish(true);
   };
 
   const onClose = () => {
-    const nearEnd = video.duration && video.currentTime >= video.duration - 0.3;
+    const watched = wasWatched();
+    console.info('[story] close', id, 'progress=', maxProgress.toFixed(2), 'watched=', watched);
     cleanup();
-    finish(nearEnd);
+    finish(watched);
   };
 
   // Orden importa en iOS: src → load() → play() sincronicamente dentro del
@@ -184,6 +204,7 @@ function playStory(id, onDone) {
   video.load();
   overlay.classList.remove('hidden');
   video.addEventListener('ended', onEnded);
+  video.addEventListener('timeupdate', onTimeUpdate);
   closeBtn?.addEventListener('click', onClose);
 
   const playPromise = video.play();
