@@ -159,6 +159,7 @@ function playStory(id, onDone) {
   const cleanup = () => {
     video.pause();
     video.removeAttribute('src');
+    video.removeAttribute('controls');
     video.load();
     overlay.classList.add('hidden');
     video.removeEventListener('ended', onEnded);
