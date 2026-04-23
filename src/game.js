@@ -111,30 +111,44 @@ function setupTapHandler() {
 
 function handleHotspotClick(el) {
   const id = el.dataset.id;
+  console.info('[game] hotspot tap', id, 'found=', [...found], 'playing=', storyPlaying);
   if (found.has(id) || storyPlaying) return;
 
   // Reproducimos el video ANTES de marcar como encontrado. Si el usuario sale antes
   // del final, el hotspot sigue disponible para reintentar.
   playStory(id, (completed) => {
+    console.info('[game] story callback', id, 'completed=', completed);
     if (!completed) return;
     markFound(el, id);
   });
 }
 
 function markFound(el, id) {
+  if (found.has(id)) return;
   found.add(id);
 
-  el.setAttribute('material', 'color: #2A5DB9; opacity: 0.9; emissive: #2A5DB9; emissiveIntensity: 0.6');
-  el.setAttribute(
-    'animation__found',
-    'property: scale; to: 0.01 0.01 0.01; dur: 500; easing: easeInQuad'
-  );
-
-  const sfx = document.querySelector('#found-sfx');
-  if (sfx?.components?.sound) sfx.components.sound.playSound();
-
+  // Actualizar contador PRIMERO: es lo más importante y no debería depender
+  // de que la animación/material sobre el a-image funcione sin errores.
   const counter = document.getElementById('counter');
   if (counter) counter.textContent = String(found.size);
+  console.info('[game] markFound', id, 'size=', found.size);
+
+  // Animación de desaparición de la moneda. La envolvemos por si el primitive
+  // a-image rechaza alguno de los atributos (no debería, pero no queremos que
+  // un bug visual rompa la lógica de conteo).
+  try {
+    el.setAttribute('animation__found',
+      'property: scale; to: 0.01 0.01 0.01; dur: 500; easing: easeInQuad');
+    setTimeout(() => el.setAttribute('visible', 'false'), 550);
+  } catch (e) {
+    console.warn('[game] hotspot hide animation failed', e);
+    try { el.setAttribute('visible', 'false'); } catch (_) { /* noop */ }
+  }
+
+  try {
+    const sfx = document.querySelector('#found-sfx');
+    if (sfx?.components?.sound) sfx.components.sound.playSound();
+  } catch (_) { /* sfx es opcional */ }
 
   if (found.size === TOTAL_HOTSPOTS) {
     setTimeout(() => completeGame(), 800);
