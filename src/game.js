@@ -142,8 +142,10 @@ function markFound(el, id) {
 }
 
 function playStory(id, onDone) {
+  const overlay = document.getElementById('story-overlay');
   const video = document.getElementById('story-video');
-  if (!video) { onDone(true); return; }
+  const closeBtn = document.getElementById('story-close');
+  if (!overlay || !video) { onDone(true); return; }
 
   storyPlaying = true;
   let resolved = false;
@@ -158,55 +160,39 @@ function playStory(id, onDone) {
     video.pause();
     video.removeAttribute('src');
     video.load();
-    video.classList.add('hidden');
+    overlay.classList.add('hidden');
     video.removeEventListener('ended', onEnded);
-    video.removeEventListener('webkitendfullscreen', onFsExit);
-    document.removeEventListener('fullscreenchange', onFsChange);
-  };
-
-  const exitFs = () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen?.().catch(() => {});
-    }
+    closeBtn?.removeEventListener('click', onClose);
   };
 
   const onEnded = () => {
-    exitFs();
     cleanup();
     finish(true);
   };
 
-  // iOS dispara este evento al salir de fullscreen nativo. Si el video terminó,
-  // `ended` habrá disparado antes; si no, el usuario cerró antes del final.
-  const onFsExit = () => {
+  const onClose = () => {
     const nearEnd = video.duration && video.currentTime >= video.duration - 0.3;
     cleanup();
     finish(nearEnd);
   };
 
-  const onFsChange = () => {
-    if (document.fullscreenElement) return;
-    const nearEnd = video.duration && video.currentTime >= video.duration - 0.3;
-    cleanup();
-    finish(nearEnd);
-  };
-
+  // Orden importa en iOS: src → load() → play() sincronicamente dentro del
+  // gesto de touchend. Sin load() previo, play() suele quedar bufferando el
+  // frame 1 cuando el src cambia en caliente.
   video.src = `/assets/historia${id}.mp4`;
-  video.currentTime = 0;
-  video.classList.remove('hidden');
+  video.load();
+  overlay.classList.remove('hidden');
   video.addEventListener('ended', onEnded);
-  video.addEventListener('webkitendfullscreen', onFsExit);
-  document.addEventListener('fullscreenchange', onFsChange);
+  closeBtn?.addEventListener('click', onClose);
 
   const playPromise = video.play();
   if (playPromise && typeof playPromise.catch === 'function') {
-    playPromise.catch((err) => console.warn('[game] video play error', err));
-  }
-
-  if (typeof video.webkitEnterFullscreen === 'function') {
-    try { video.webkitEnterFullscreen(); } catch (_) { /* fallback inline */ }
-  } else if (video.requestFullscreen) {
-    video.requestFullscreen().catch(() => { /* se reproduce inline */ });
+    playPromise.catch((err) => {
+      // Si el browser bloqueó el play (autoplay policy raro), mostramos controles
+      // para que el usuario pueda iniciarlo manualmente.
+      console.warn('[game] video play blocked, showing controls', err);
+      video.setAttribute('controls', 'controls');
+    });
   }
 }
 
