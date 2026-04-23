@@ -43,9 +43,9 @@ async function drawCouponCanvas(code) {
 
   // Claim de campaña
   ctx.fillStyle = YELLOW;
-  ctx.font = '700 30px "Inter", system-ui, sans-serif';
+  ctx.font = '700 26px "Inter", system-ui, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('HISTORIAS  DE  PASILLO', W / 2, 255);
+  ctx.fillText('TU PRIMERA VEZ EN LA NUEVA TIENDA CONSTRUMART ARICA', W / 2, 255);
 
   // Card blanca (ticket)
   const cardX = 60;
