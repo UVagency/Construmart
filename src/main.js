@@ -19,9 +19,9 @@ function initLanding() {
   if (!btn) return;
 
   btn.addEventListener('click', async () => {
-    const email = document.getElementById('email')?.value?.trim();
+    const name = document.getElementById('name')?.value?.trim();
     const phone = document.getElementById('phone')?.value?.trim();
-    if (email) sessionStorage.setItem('lead_email', email);
+    if (name) sessionStorage.setItem('lead_name', name);
     if (phone) sessionStorage.setItem('lead_phone', phone);
 
     // iOS 13+ requiere permiso explícito de DeviceMotion con un tap del usuario.
