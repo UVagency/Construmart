@@ -187,7 +187,7 @@ async function saveCouponImage(code, generateCouponBlob) {
     toast('¡Guardado en tu celular!');
   } catch (e) {
     console.error('[save] error generando cupón:', e);
-    toast('No se pudo guardar. Mostrá el código en caja.');
+    toast('No se pudo guardar. Muestra el código en caja.');
   }
 }
 

@@ -107,7 +107,7 @@ async function drawCouponCanvas(code) {
   ctx.fillStyle = NAVY;
   ctx.font = '600 28px "Inter", system-ui, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('Mostrá este código en caja', W / 2, cardY + 880);
+  ctx.fillText('Muestra este código en caja', W / 2, cardY + 880);
 
   // Footer navy debajo del ticket
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
