@@ -156,19 +156,34 @@ function showPlaca(id, onDone) {
   if (!overlay || !image) { onDone(); return; }
 
   placaVisible = true;
+  let imageTapEnabled = false;
+
+  const onImageTap = () => {
+    // Evitamos que el tap inicial (el que abrió la placa) se propague y cierre
+    // enseguida: el listener recién responde cuando la imagen ya cargó.
+    if (!imageTapEnabled) return;
+    close();
+  };
+
+  const onImageLoaded = () => { imageTapEnabled = true; };
 
   const close = () => {
     overlay.classList.add('hidden');
     image.removeAttribute('src');
     closeBtn?.removeEventListener('click', close);
+    image.removeEventListener('click', onImageTap);
+    image.removeEventListener('load', onImageLoaded);
     placaVisible = false;
     console.info('[placa] close', id);
     onDone();
   };
 
+  image.classList.add('cursor-pointer');
   image.src = `/assets/construmart-placa${id}.jpg`;
   overlay.classList.remove('hidden');
   closeBtn?.addEventListener('click', close);
+  image.addEventListener('click', onImageTap);
+  image.addEventListener('load', onImageLoaded);
 }
 
 async function completeGame() {
