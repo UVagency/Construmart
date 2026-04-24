@@ -138,16 +138,12 @@
     </a-entity>
   </a-scene>
 
-  <!-- Reproductor de historias — overlay full-viewport. No usamos la fullscreen API
-       porque en iOS webkitEnterFullscreen entrega el player nativo y se descoordina
-       con play() (queda pausado en frame 1). Un overlay + playsinline es más fiable. -->
-  <div id="story-overlay" class="hidden fixed inset-0 z-40 bg-black">
-    <video id="story-video"
-           class="w-full h-full object-contain bg-black"
-           preload="auto"
-           playsinline
-           webkit-playsinline></video>
-    <button id="story-close" aria-label="Cerrar historia"
+  <!-- Placa de historia — overlay full-viewport opaco para tapar la UI del juego. -->
+  <div id="placa-overlay" class="hidden fixed inset-0 z-40 bg-black">
+    <img id="placa-image"
+         class="w-full h-full object-contain"
+         alt="Historia de pasillo">
+    <button id="placa-close" aria-label="Cerrar historia"
             class="absolute top-4 right-4 bg-white/20 border border-white/40 text-white rounded-full w-11 h-11 flex items-center justify-center text-2xl leading-none active:scale-95 transition">×</button>
   </div>
 

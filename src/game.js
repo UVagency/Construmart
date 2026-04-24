@@ -1,6 +1,6 @@
 const TOTAL_HOTSPOTS = 3;
 const found = new Set();
-let storyPlaying = false;
+let placaVisible = false;
 
 // Tolerancias para distinguir tap de drag (look-controls usa drag para girar la cámara).
 const TAP_MAX_DIST = 12;   // px de movimiento tolerado
@@ -111,16 +111,10 @@ function setupTapHandler() {
 
 function handleHotspotClick(el) {
   const id = el.dataset.id;
-  console.info('[game] hotspot tap', id, 'found=', [...found], 'playing=', storyPlaying);
-  if (found.has(id) || storyPlaying) return;
+  console.info('[game] hotspot tap', id, 'found=', [...found], 'visible=', placaVisible);
+  if (found.has(id) || placaVisible) return;
 
-  // Reproducimos el video ANTES de marcar como encontrado. Si el usuario sale antes
-  // del final, el hotspot sigue disponible para reintentar.
-  playStory(id, (completed) => {
-    console.info('[game] story callback', id, 'completed=', completed);
-    if (!completed) return;
-    markFound(el, id);
-  });
+  showPlaca(id, () => markFound(el, id));
 }
 
 function markFound(el, id) {
@@ -155,81 +149,26 @@ function markFound(el, id) {
   }
 }
 
-function playStory(id, onDone) {
-  const overlay = document.getElementById('story-overlay');
-  const video = document.getElementById('story-video');
-  const closeBtn = document.getElementById('story-close');
-  if (!overlay || !video) { onDone(true); return; }
+function showPlaca(id, onDone) {
+  const overlay = document.getElementById('placa-overlay');
+  const image = document.getElementById('placa-image');
+  const closeBtn = document.getElementById('placa-close');
+  if (!overlay || !image) { onDone(); return; }
 
-  storyPlaying = true;
-  let resolved = false;
-  const finish = (completed) => {
-    if (resolved) return;
-    resolved = true;
-    storyPlaying = false;
-    onDone(completed);
-  };
+  placaVisible = true;
 
-  // iOS a veces no dispara `ended` en video inline, o lo dispara después de que
-  // el overlay se cerró y `duration` se volvió NaN. En vez de confiar solo en
-  // `ended`, trackeamos progreso real vía `timeupdate` y consideramos "visto"
-  // si el usuario llegó al ≥ 90% o si `ended` disparó.
-  let maxProgress = 0;
-  let endedFired = false;
-
-  const onTimeUpdate = () => {
-    if (video.duration > 0) {
-      const p = video.currentTime / video.duration;
-      if (p > maxProgress) maxProgress = p;
-    }
-  };
-
-  const wasWatched = () => endedFired || maxProgress >= 0.9;
-
-  const cleanup = () => {
-    video.pause();
-    video.removeAttribute('src');
-    video.removeAttribute('controls');
-    video.load();
+  const close = () => {
     overlay.classList.add('hidden');
-    video.removeEventListener('ended', onEnded);
-    video.removeEventListener('timeupdate', onTimeUpdate);
-    closeBtn?.removeEventListener('click', onClose);
+    image.removeAttribute('src');
+    closeBtn?.removeEventListener('click', close);
+    placaVisible = false;
+    console.info('[placa] close', id);
+    onDone();
   };
 
-  const onEnded = () => {
-    endedFired = true;
-    console.info('[story] ended', id, 'progress=', maxProgress.toFixed(2));
-    cleanup();
-    finish(true);
-  };
-
-  const onClose = () => {
-    const watched = wasWatched();
-    console.info('[story] close', id, 'progress=', maxProgress.toFixed(2), 'watched=', watched);
-    cleanup();
-    finish(watched);
-  };
-
-  // Orden importa en iOS: src → load() → play() sincronicamente dentro del
-  // gesto de touchend. Sin load() previo, play() suele quedar bufferando el
-  // frame 1 cuando el src cambia en caliente.
-  video.src = `/assets/historia${id}.mp4`;
-  video.load();
+  image.src = `/assets/construmart-placa${id}.jpg`;
   overlay.classList.remove('hidden');
-  video.addEventListener('ended', onEnded);
-  video.addEventListener('timeupdate', onTimeUpdate);
-  closeBtn?.addEventListener('click', onClose);
-
-  const playPromise = video.play();
-  if (playPromise && typeof playPromise.catch === 'function') {
-    playPromise.catch((err) => {
-      // Si el browser bloqueó el play (autoplay policy raro), mostramos controles
-      // para que el usuario pueda iniciarlo manualmente.
-      console.warn('[game] video play blocked, showing controls', err);
-      video.setAttribute('controls', 'controls');
-    });
-  }
+  closeBtn?.addEventListener('click', close);
 }
 
 async function completeGame() {
