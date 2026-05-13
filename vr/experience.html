@@ -102,26 +102,35 @@
 
         <!-- HUD: contador de historias encontradas, anclado a la cámara -->
         <a-entity id="hud" position="0.27 -0.2 -0.52">
-          <a-plane color="#041E42" opacity="0.88" width="0.32" height="0.11"></a-plane>
+          <a-plane color="#041E42" opacity="0.92" width="0.42" height="0.18"></a-plane>
+          <a-plane color="#FFB81C" width="0.42" height="0.022" position="0 0.079 0.003"></a-plane>
+          <a-text value="HISTORIAS"
+                  align="center"
+                  font="aileronsemibold"
+                  color="white"
+                  width="0.46"
+                  position="0 0.025 0.006">
+          </a-text>
           <a-text id="hud-counter"
                   value="0 / 3"
                   align="center"
                   font="aileronsemibold"
                   color="#FFB81C"
-                  width="0.6"
-                  position="0 0.005 0.006">
+                  width="0.55"
+                  position="0 -0.032 0.006">
           </a-text>
         </a-entity>
 
         <!-- Botón de ayuda, anclado a la cámara -->
-        <a-entity id="help-btn" class="clickable" position="-0.27 -0.2 -0.52">
-          <a-plane color="#041E42" opacity="0.88" width="0.11" height="0.11"></a-plane>
+        <a-entity position="-0.27 -0.2 -0.52">
+          <a-plane id="help-btn" class="clickable" color="#041E42" opacity="0.92" width="0.18" height="0.18"></a-plane>
+          <a-plane color="#FFB81C" width="0.18" height="0.022" position="0 0.079 0.003"></a-plane>
           <a-text value="?"
                   align="center"
                   font="aileronsemibold"
-                  color="white"
-                  width="0.28"
-                  position="0 0 0.006">
+                  color="#FFB81C"
+                  width="0.32"
+                  position="0 -0.01 0.006">
           </a-text>
         </a-entity>
 
@@ -147,20 +156,22 @@
 
     <!-- Panel: imagen de historia (placa) -->
     <a-entity id="placa-panel" visible="false" position="0 1.6 -2.3">
-      <a-plane color="#000000" opacity="0.98" width="3.5" height="2.3"></a-plane>
+      <a-plane color="#041E42" opacity="0.98" width="3.5" height="2.5"></a-plane>
+      <a-plane color="#FFB81C" width="3.5" height="0.07" position="0 1.215 0.005"></a-plane>
+      <a-plane color="#FFB81C" width="3.5" height="0.07" position="0 -1.215 0.005"></a-plane>
       <a-image id="placa-img"
-               width="3.2" height="2.05"
-               position="0 0.06 0.015"
+               width="3.2" height="1.9"
+               position="0 0.22 0.015"
                crossorigin="anonymous">
       </a-image>
-      <a-entity id="placa-close" class="clickable" position="1.6 1.04 0.02">
-        <a-plane color="#cc3333" width="0.33" height="0.33"></a-plane>
-        <a-text value="X"
+      <a-entity position="0 -0.94 0.02">
+        <a-plane id="placa-close" class="clickable" color="#FFB81C" width="1.6" height="0.34"></a-plane>
+        <a-text value="Cerrar"
                 align="center"
                 font="aileronsemibold"
-                color="white"
-                width="0.7"
-                position="0 0 0.006">
+                color="#041E42"
+                width="1.1"
+                position="0 0 0.008">
         </a-text>
       </a-entity>
     </a-entity>
@@ -185,14 +196,14 @@
               position="0 0.08 0.01">
       </a-text>
       <a-plane color="#FFB81C" width="2.8" height="0.07" position="0 -1.015 0.005"></a-plane>
-      <a-entity id="help-close" class="clickable" position="0 -0.72 0.015">
-        <a-plane color="#FFB81C" width="1.6" height="0.34"></a-plane>
+      <a-entity position="0 -0.72 0.015">
+        <a-plane id="help-close" class="clickable" color="#FFB81C" width="1.6" height="0.34"></a-plane>
         <a-text value="Entendido"
                 align="center"
                 font="aileronsemibold"
                 color="#041E42"
                 width="1.1"
-                position="0 0 0.006">
+                position="0 0 0.008">
         </a-text>
       </a-entity>
     </a-entity>
@@ -229,8 +240,8 @@
               position="0 -0.22 0.02">
       </a-text>
       <!-- ─────────────────────────────────────────────────────────────── -->
-      <a-entity id="replay-btn" class="clickable" position="0 -0.74 0.015">
-        <a-plane color="#ffffff" opacity="0.1" width="1.7" height="0.34"></a-plane>
+      <a-entity position="0 -0.74 0.015">
+        <a-plane id="replay-btn" class="clickable" color="#ffffff" opacity="0.1" width="1.7" height="0.34"></a-plane>
         <a-text value="Repetir experiencia"
                 align="center"
                 font="aileronsemibold"
