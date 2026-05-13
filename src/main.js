@@ -5,12 +5,12 @@ const path = window.location.pathname;
 // Router simple — carga lógica por página.
 if (path === '/' || path.endsWith('/index.html')) {
   initLanding();
-} else if (path.endsWith('/index_vr.html')) {
+} else if (path === '/vr/' || path === '/vr' || path.endsWith('/vr/index.html')) {
   initLandingVR();
+} else if (path === '/vr/experience.html') {
+  initExperienceVR();
 } else if (path.endsWith('/experience.html')) {
   initExperience();
-} else if (path.endsWith('/experience_vr.html')) {
-  initExperienceVR();
 } else if (path.endsWith('/success.html')) {
   initSuccess();
 }
@@ -65,7 +65,7 @@ function initLandingVR() {
   const btn = document.getElementById('start-btn');
   if (!btn) return;
   btn.addEventListener('click', () => {
-    window.location.href = '/experience_vr.html';
+    window.location.href = '/vr/experience.html';
   });
 }
 
