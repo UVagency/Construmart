@@ -14,7 +14,6 @@
 </head>
 <body class="bg-cm-navy text-white no-select overflow-hidden">
 
-  <!-- Splash de carga — HTML puro, se ve antes de entrar al modo VR -->
   <div id="splash" class="fixed inset-0 z-50 bg-cm-navy flex flex-col items-center justify-center p-8 transition-opacity duration-500">
     <div class="cm-stripes h-1.5 w-full absolute top-0 left-0"></div>
     <img src="/logo-construmart-stacked.jpg" alt="Construmart" class="w-56 max-w-[60vw] rounded-2xl shadow-2xl mb-8" />
@@ -24,10 +23,6 @@
     <div class="cm-stripes h-1.5 w-full absolute bottom-0 left-0"></div>
   </div>
 
-  <!-- A-Frame Scene
-       Toda la UI vive dentro de la escena para ser visible en modo VR.
-       vr-mode-ui habilitado: el botón "Enter VR" de A-Frame aparece en Quest.
-       webxr con local-floor opcional: usa tracking de piso en Quest si está disponible. -->
   <a-scene
     webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking"
     vr-mode-ui="enabled: true"
@@ -37,7 +32,6 @@
     <a-assets>
       <img id="sky360" src="/360/construmart-360.jpg" crossorigin="anonymous">
       <img id="coin-img" src="/assets/construmart_coin.png" crossorigin="anonymous">
-      <!-- Placas precargadas para evitar pop-in al mostrarlas -->
       <img id="placa-1" src="/assets/construmart-placa1.jpg" crossorigin="anonymous">
       <img id="placa-2" src="/assets/construmart-placa2.jpg" crossorigin="anonymous">
       <img id="placa-3" src="/assets/construmart-placa3.jpg" crossorigin="anonymous">
@@ -48,10 +42,7 @@
 
     <!-- ── Hotspots ── -->
     <a-entity class="hotspot-anchor" position="3 1 -5">
-      <a-image class="hotspot clickable"
-               src="#coin-img"
-               width="1.2" height="1.2"
-               transparent="true"
+      <a-image class="hotspot clickable" src="#coin-img" width="1.2" height="1.2" transparent="true"
                animation__pulse="property: scale; from: 1 1 1; to: 1.08 1.08 1.08; dir: alternate; dur: 1400; loop: true; easing: easeInOutSine"
                animation__sway="property: rotation; from: 0 0 -5; to: 0 0 5; dir: alternate; dur: 2400; loop: true; easing: easeInOutSine"
                data-id="1">
@@ -59,10 +50,7 @@
     </a-entity>
 
     <a-entity class="hotspot-anchor" position="-4 0.5 -3">
-      <a-image class="hotspot clickable"
-               src="#coin-img"
-               width="1.2" height="1.2"
-               transparent="true"
+      <a-image class="hotspot clickable" src="#coin-img" width="1.2" height="1.2" transparent="true"
                animation__pulse="property: scale; from: 1 1 1; to: 1.08 1.08 1.08; dir: alternate; dur: 1600; loop: true; easing: easeInOutSine; delay: 250"
                animation__sway="property: rotation; from: 0 0 -5; to: 0 0 5; dir: alternate; dur: 2200; loop: true; easing: easeInOutSine; delay: 400"
                data-id="2">
@@ -70,19 +58,14 @@
     </a-entity>
 
     <a-entity class="hotspot-anchor" position="-0.5 0.75 -4">
-      <a-image class="hotspot clickable"
-               src="#coin-img"
-               width="1.2" height="1.2"
-               transparent="true"
+      <a-image class="hotspot clickable" src="#coin-img" width="1.2" height="1.2" transparent="true"
                animation__pulse="property: scale; from: 1 1 1; to: 1.08 1.08 1.08; dir: alternate; dur: 1500; loop: true; easing: easeInOutSine; delay: 600"
                animation__sway="property: rotation; from: 0 0 -5; to: 0 0 5; dir: alternate; dur: 2600; loop: true; easing: easeInOutSine; delay: 150"
                data-id="3">
       </a-image>
     </a-entity>
 
-    <!-- ── Camera rig
-         Estructura estándar para VR 6DOF (Quest) + móvil 3DOF.
-         El rig agrupa cámara y controladores en un mismo espacio de referencia. ── -->
+    <!-- ── Camera rig ── -->
     <a-entity id="camera-rig">
 
       <a-entity id="camera"
@@ -90,8 +73,7 @@
                 look-controls="touchEnabled: true; magicWindowTrackingEnabled: true"
                 position="0 1.6 0">
 
-        <!-- Cursor visible en modo plano (desktop/móvil sin VR).
-             fuse:false → solo activa con click/tap, no con la mirada. -->
+        <!-- Cursor para modo plano / móvil sin VR -->
         <a-entity
           cursor="fuse: false"
           raycaster="objects: .clickable; far: 25"
@@ -100,43 +82,24 @@
           material="color: #FFB81C; shader: flat; opacity: 0.75">
         </a-entity>
 
-        <!-- HUD: contador de historias encontradas, anclado a la cámara -->
-        <a-entity id="hud" position="0.27 0.18 -0.65">
+        <!-- HUD: arriba derecha, anclado a cámara -->
+        <a-entity id="hud" position="0.27 0.17 -0.65">
           <a-plane color="#041E42" opacity="0.92" width="0.42" height="0.18"></a-plane>
           <a-plane color="#FFB81C" width="0.42" height="0.022" position="0 0.079 0.003"></a-plane>
-          <a-text value="HISTORIAS"
-                  align="center"
-                  font="aileronsemibold"
-                  color="white"
-                  width="0.46"
-                  position="0 0.025 0.006">
-          </a-text>
-          <a-text id="hud-counter"
-                  value="0 / 3"
-                  align="center"
-                  font="aileronsemibold"
-                  color="#FFB81C"
-                  width="0.55"
-                  position="0 -0.032 0.006">
-          </a-text>
+          <a-text value="HISTORIAS" align="center" font="aileronsemibold" color="white" width="0.46" position="0 0.025 0.006"></a-text>
+          <a-text id="hud-counter" value="0 / 3" align="center" font="aileronsemibold" color="#FFB81C" width="0.55" position="0 -0.032 0.006"></a-text>
         </a-entity>
 
-        <!-- Botón de ayuda, anclado a la cámara -->
-        <a-entity position="-0.27 0.18 -0.65">
+        <!-- Botón "?" arriba izquierda -->
+        <a-entity position="-0.27 0.17 -0.65">
           <a-plane id="help-btn" class="clickable" color="#041E42" opacity="0.92" width="0.18" height="0.18"></a-plane>
           <a-plane color="#FFB81C" width="0.18" height="0.022" position="0 0.079 0.003"></a-plane>
-          <a-text value="?"
-                  align="center"
-                  font="aileronsemibold"
-                  color="#FFB81C"
-                  width="0.32"
-                  position="0 -0.01 0.006">
-          </a-text>
+          <a-text value="?" align="center" font="aileronsemibold" color="#FFB81C" width="0.32" position="0 -0.01 0.006"></a-text>
         </a-entity>
 
       </a-entity>
 
-      <!-- Controladores Quest 2 con laser pointer amarillo -->
+      <!-- Controladores Quest 2 -->
       <a-entity id="right-hand"
                 laser-controls="hand: right"
                 raycaster="objects: .clickable; far: 25; lineColor: #FFB81C; lineOpacity: 0.8">
@@ -148,107 +111,60 @@
 
     </a-entity>
 
-    <!-- ════════════════════════════════════════════════════════
-         PANELES UI — todos en espacio 3D, visibles en VR.
-         Posición "0 1.6 -2.3": frente al usuario, a altura de ojos.
-         Se muestran/ocultan con setAttribute('visible', ...) en game.js.
-         ════════════════════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════
+         PANELES UI — posición y rotación se actualizan en JS al
+         mostrarlos, para aparecer siempre frente al usuario.
+         Todos 2.2 × 2.0 m, diseño consistente: navy + franjas amarillas
+         + botón amarillo centrado abajo.
+         ═══════════════════════════════════════════════════════════ -->
 
-    <!-- Panel: imagen de historia (placa) -->
-    <a-entity id="placa-panel" visible="false" position="0 1.6 -3.5" scale="1.3 1.3 1.3">
-      <a-plane color="#041E42" opacity="0.98" width="3.5" height="2.5"></a-plane>
-      <a-plane color="#FFB81C" width="3.5" height="0.07" position="0 1.215 0.005"></a-plane>
-      <a-plane color="#FFB81C" width="3.5" height="0.07" position="0 -1.215 0.005"></a-plane>
-      <a-image id="placa-img"
-               width="3.2" height="1.9"
-               position="0 0.22 0.015"
-               crossorigin="anonymous">
-      </a-image>
-      <a-entity position="0 -0.94 0.02">
-        <a-plane id="placa-close" class="clickable" color="#FFB81C" width="1.6" height="0.34"></a-plane>
-        <a-text value="Cerrar"
-                align="center"
-                font="aileronsemibold"
-                color="#041E42"
-                width="1.1"
-                position="0 0 0.008">
-        </a-text>
+    <!-- Panel: historia (placa) -->
+    <a-entity id="placa-panel" visible="false" position="0 1.6 -3">
+      <a-plane color="#041E42" opacity="0.98" width="2.2" height="2.0"></a-plane>
+      <a-plane color="#FFB81C" width="2.2" height="0.065" position="0 0.965 0.005"></a-plane>
+      <a-plane color="#FFB81C" width="2.2" height="0.065" position="0 -0.965 0.005"></a-plane>
+      <a-image id="placa-img" width="2.0" height="1.3" position="0 0.14 0.015" crossorigin="anonymous"></a-image>
+      <a-entity position="0 -0.72 0.02">
+        <a-plane id="placa-close" class="clickable" color="#FFB81C" width="1.4" height="0.28"></a-plane>
+        <a-text value="Cerrar" align="center" font="aileronsemibold" color="#041E42" width="1.0" position="0 0 0.008"></a-text>
       </a-entity>
     </a-entity>
 
-    <!-- Panel: ayuda / instrucciones -->
-    <a-entity id="help-panel" visible="false" position="0 1.6 -3.5" scale="1.3 1.3 1.3">
-      <a-plane color="#041E42" opacity="0.97" width="2.8" height="2.1"></a-plane>
-      <a-plane color="#FFB81C" width="2.8" height="0.07" position="0 1.015 0.005"></a-plane>
-      <a-text value="COMO JUGAR"
-              align="center"
-              font="aileronsemibold"
-              color="#FFB81C"
-              width="2.4"
-              position="0 0.72 0.01">
+    <!-- Panel: ayuda -->
+    <a-entity id="help-panel" visible="false" position="0 1.6 -3">
+      <a-plane color="#041E42" opacity="0.97" width="2.2" height="2.0"></a-plane>
+      <a-plane color="#FFB81C" width="2.2" height="0.065" position="0 0.965 0.005"></a-plane>
+      <a-plane color="#FFB81C" width="2.2" height="0.065" position="0 -0.965 0.005"></a-plane>
+      <a-text value="CÓMO JUGAR"
+              align="center" font="aileronsemibold" color="#FFB81C" width="1.9" position="0 0.67 0.01">
       </a-text>
-      <a-text value="Gira la cabeza para recorrer\nel pasillo 360 grados.\n\nApunta con el controlador y\npresiona el gatillo sobre los\ncirculos amarillos.\n\nEncuentra las 3 historias\npara completar la experiencia."
-              align="center"
-              font="aileronsemibold"
-              color="white"
-              width="1.9"
-              line-height="55"
-              position="0 0.08 0.01">
+      <a-text value="Girá la cabeza para\nexplorar el pasillo 360°.\n\nApuntá con el controlador\ny presioná el gatillo sobre\nlos círculos amarillos.\n\nEncontrá las 3 historias."
+              align="center" font="aileronsemibold" color="white" width="1.75" line-height="55" position="0 0.03 0.01">
       </a-text>
-      <a-plane color="#FFB81C" width="2.8" height="0.07" position="0 -1.015 0.005"></a-plane>
-      <a-entity position="0 -0.72 0.015">
-        <a-plane id="help-close" class="clickable" color="#FFB81C" width="1.6" height="0.34"></a-plane>
-        <a-text value="Entendido"
-                align="center"
-                font="aileronsemibold"
-                color="#041E42"
-                width="1.1"
-                position="0 0 0.008">
-        </a-text>
+      <a-entity position="0 -0.72 0.02">
+        <a-plane id="help-close" class="clickable" color="#FFB81C" width="1.4" height="0.28"></a-plane>
+        <a-text value="Entendido" align="center" font="aileronsemibold" color="#041E42" width="1.0" position="0 0 0.008"></a-text>
       </a-entity>
     </a-entity>
 
-    <!-- Panel: pantalla de fin (placeholder — reemplazar CTA central con mensaje final) -->
-    <a-entity id="complete-panel" visible="false" position="0 1.6 -3.5" scale="1.3 1.3 1.3">
-      <a-plane color="#041E42" opacity="0.98" width="3" height="2.3"></a-plane>
-      <!-- Franjas amarillas de marca -->
-      <a-plane color="#FFB81C" width="3" height="0.07" position="0 1.115 0.005"></a-plane>
-      <a-plane color="#FFB81C" width="3" height="0.07" position="0 -1.115 0.005"></a-plane>
-      <!-- Textos -->
+    <!-- Panel: fin -->
+    <a-entity id="complete-panel" visible="false" position="0 1.6 -3">
+      <a-plane color="#041E42" opacity="0.98" width="2.2" height="2.0"></a-plane>
+      <a-plane color="#FFB81C" width="2.2" height="0.065" position="0 0.965 0.005"></a-plane>
+      <a-plane color="#FFB81C" width="2.2" height="0.065" position="0 -0.965 0.005"></a-plane>
       <a-text value="CONSTRUMART"
-              align="center"
-              font="aileronsemibold"
-              letter-spacing="6"
-              color="#FFB81C"
-              width="2.8"
-              position="0 0.75 0.01">
+              align="center" font="aileronsemibold" letter-spacing="6" color="#FFB81C" width="2.0" position="0 0.67 0.01">
       </a-text>
-      <a-text value="Completaste las\nhistorias del pasillo"
-              align="center"
-              font="aileronsemibold"
-              color="white"
-              width="2.3"
-              position="0 0.3 0.01">
+      <a-text value="¡Encontraste las\n3 historias del pasillo!"
+              align="center" font="aileronsemibold" color="white" width="1.8" position="0 0.27 0.01">
       </a-text>
-      <!-- ─── Zona de CTA — reemplazar este bloque con el mensaje final ─── -->
-      <a-plane color="#2A5DB9" opacity="0.75" width="2.6" height="0.55" position="0 -0.22 0.01"></a-plane>
+      <a-plane color="#2A5DB9" opacity="0.6" width="1.9" height="0.44" position="0 -0.15 0.01"></a-plane>
       <a-text value="[ Mensaje de cierre por definir ]"
-              align="center"
-              font="aileronsemibold"
-              color="white"
-              width="1.9"
-              position="0 -0.22 0.02">
+              align="center" font="aileronsemibold" color="white" width="1.5" position="0 -0.15 0.02">
       </a-text>
-      <!-- ─────────────────────────────────────────────────────────────── -->
-      <a-entity position="0 -0.74 0.015">
-        <a-plane id="replay-btn" class="clickable" color="#ffffff" opacity="0.1" width="1.7" height="0.34"></a-plane>
-        <a-text value="Repetir experiencia"
-                align="center"
-                font="aileronsemibold"
-                color="#FFB81C"
-                width="1.3"
-                position="0 0 0.006">
-        </a-text>
+      <a-entity position="0 -0.72 0.02">
+        <a-plane id="replay-btn" class="clickable" color="#FFB81C" width="1.4" height="0.28"></a-plane>
+        <a-text value="Repetir experiencia" align="center" font="aileronsemibold" color="#041E42" width="1.0" position="0 0 0.008"></a-text>
       </a-entity>
     </a-entity>
 
