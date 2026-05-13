@@ -5,8 +5,12 @@ const path = window.location.pathname;
 // Router simple — carga lógica por página.
 if (path === '/' || path.endsWith('/index.html')) {
   initLanding();
+} else if (path.endsWith('/index_vr.html')) {
+  initLandingVR();
 } else if (path.endsWith('/experience.html')) {
   initExperience();
+} else if (path.endsWith('/experience_vr.html')) {
+  initExperienceVR();
 } else if (path.endsWith('/success.html')) {
   initSuccess();
 }
@@ -52,6 +56,38 @@ async function requestMotionPermission() {
       console.warn('[orientation] permiso denegado o error:', e);
     }
   }
+}
+
+// ─────────────────────────────────────────────────────────────
+// VR landing: sin formulario ni permiso de giroscopio
+// ─────────────────────────────────────────────────────────────
+function initLandingVR() {
+  const btn = document.getElementById('start-btn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    window.location.href = '/experience_vr.html';
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// VR experience: sin gate de landing, carga game_vr.js
+// ─────────────────────────────────────────────────────────────
+function initExperienceVR() {
+  const SPLASH_MIN_MS = 1200;
+  const splashStart = performance.now();
+
+  import('./game_vr.js').then(({ initGame }) => {
+    const scene = document.querySelector('a-scene');
+    if (!scene) return;
+
+    const boot = () => {
+      initGame();
+      hideSplash(splashStart, SPLASH_MIN_MS);
+    };
+
+    if (scene.hasLoaded) boot();
+    else scene.addEventListener('loaded', boot, { once: true });
+  });
 }
 
 // ─────────────────────────────────────────────────────────────
