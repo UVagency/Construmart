@@ -9,7 +9,16 @@ export async function initGame() {
   wireHotspots();
   wireButtons();
   wireVREvents();
+  mostrarHUDSiPlano();
   mostrarAyudaSiPrimeraVez();
+}
+
+function mostrarHUDSiPlano() {
+  const scene = document.querySelector('a-scene');
+  if (!scene?.is('vr-mode')) {
+    document.getElementById('hud-overlay')?.classList.remove('hidden');
+    document.getElementById('help-btn-html')?.classList.remove('hidden');
+  }
 }
 
 // ── Hotspots ──────────────────────────────────────────────────────────────────
@@ -58,6 +67,8 @@ function markFound(el, id) {
 
   const counter = document.getElementById('hud-counter');
   if (counter) counter.setAttribute('value', `${found.size} / ${TOTAL_HOTSPOTS}`);
+  const counterHtml = document.getElementById('hud-counter-html');
+  if (counterHtml) counterHtml.textContent = `${found.size} / ${TOTAL_HOTSPOTS}`;
 
   try {
     el.setAttribute('animation__found', 'property: scale; to: 0.01 0.01 0.01; dur: 500; easing: easeInQuad');
@@ -108,10 +119,14 @@ function mostrarAyuda3D() {
 // ── Botones ───────────────────────────────────────────────────────────────────
 
 function wireButtons() {
-  // Overlay HTML (modo plano) — click nativo, siempre funciona
+  // Overlay HTML (modo plano) — clicks nativos, siempre funcionan
   document.getElementById('help-overlay-close')?.addEventListener('click', () => {
     document.getElementById('help-overlay')?.classList.add('hidden');
     try { localStorage.setItem('cm_vr_help_seen', '1'); } catch (_) {}
+  });
+
+  document.getElementById('help-btn-html')?.addEventListener('click', () => {
+    document.getElementById('help-overlay')?.classList.remove('hidden');
   });
 
   // Botones 3D A-Frame (modo VR en headset)
@@ -157,8 +172,10 @@ function wireVREvents() {
   if (!scene) return;
 
   scene.addEventListener('enter-vr', () => {
-    // Ocultar overlay HTML — en VR no es visible ni interactuable
+    // Ocultar overlays HTML — en VR no son visibles
     document.getElementById('help-overlay')?.classList.add('hidden');
+    document.getElementById('hud-overlay')?.classList.add('hidden');
+    document.getElementById('help-btn-html')?.classList.add('hidden');
     // Si no vio la ayuda, mostrar panel 3D
     try {
       if (!localStorage.getItem('cm_vr_help_seen')) mostrarAyuda3D();
@@ -166,9 +183,10 @@ function wireVREvents() {
   });
 
   scene.addEventListener('exit-vr', () => {
-    // Ocultar panel 3D de ayuda
+    // Ocultar panel 3D de ayuda, restaurar overlays HTML
     document.getElementById('help-panel')?.setAttribute('visible', 'false');
-    // Si no vio la ayuda, volver al overlay HTML
+    document.getElementById('hud-overlay')?.classList.remove('hidden');
+    document.getElementById('help-btn-html')?.classList.remove('hidden');
     try {
       if (!localStorage.getItem('cm_vr_help_seen')) {
         document.getElementById('help-overlay')?.classList.remove('hidden');

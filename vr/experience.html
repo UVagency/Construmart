@@ -44,6 +44,18 @@
     <div class="cm-stripes h-1.5 w-full absolute bottom-0 left-0"></div>
   </div>
 
+  <!-- HUD HTML para modo plano — se ocultan en VR (el 3D toma el relevo) -->
+  <div id="hud-overlay" class="hidden fixed top-4 right-4 z-30 pointer-events-none select-none">
+    <div class="bg-cm-navy/85 backdrop-blur-sm rounded-xl px-4 py-2.5 text-center shadow-xl border border-cm-yellow/20">
+      <div class="text-[8px] tracking-[0.25em] text-white/50 font-bold uppercase mb-0.5">Historias</div>
+      <div id="hud-counter-html" class="font-display text-cm-yellow text-2xl font-bold leading-none">0 / 3</div>
+    </div>
+  </div>
+
+  <button id="help-btn-html" class="hidden fixed top-4 left-4 z-30 w-11 h-11 bg-cm-navy/85 backdrop-blur-sm rounded-full border border-cm-yellow/20 flex items-center justify-center text-cm-yellow font-display font-bold text-xl shadow-xl active:scale-95 transition select-none">
+    ?
+  </button>
+
   <a-scene
     webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking"
     vr-mode-ui="enabled: true"
