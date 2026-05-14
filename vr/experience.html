@@ -73,13 +73,12 @@
                 look-controls="touchEnabled: true; magicWindowTrackingEnabled: true"
                 position="0 1.6 0">
 
-        <!-- Cursor para modo plano / móvil sin VR -->
+        <!-- Cursor para modo plano / móvil sin VR.
+             rayOrigin:mouse → el ray sigue el punto exacto donde el usuario
+             toca o hace click en pantalla, no el centro del campo visual. -->
         <a-entity
-          cursor="fuse: false"
-          raycaster="objects: .clickable; far: 25"
-          position="0 0 -1"
-          geometry="primitive: ring; radiusInner: 0.014; radiusOuter: 0.022"
-          material="color: #FFB81C; shader: flat; opacity: 0.75">
+          cursor="fuse: false; rayOrigin: mouse"
+          raycaster="objects: .clickable; far: 25">
         </a-entity>
 
         <!-- HUD: arriba derecha, anclado a cámara -->

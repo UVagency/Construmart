@@ -120,6 +120,22 @@ function wireButtons() {
   document.getElementById('replay-btn')?.addEventListener('click', () => {
     window.location.reload();
   });
+
+  // Fallback para Quest 2: en A-Frame 1.5 el laser-controls no siempre convierte
+  // selectstart (WebXR) → triggerdown → click. Disparamos click explícitamente.
+  wireControllerSelect('right-hand');
+  wireControllerSelect('left-hand');
+}
+
+function wireControllerSelect(handId) {
+  const hand = document.getElementById(handId);
+  if (!hand) return;
+  hand.addEventListener('selectstart', () => {
+    const intersected = hand.components?.raycaster?.intersectedEls?.[0];
+    if (intersected) {
+      intersected.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    }
+  });
 }
 
 // ── Utilidades ────────────────────────────────────────────────────────────────
