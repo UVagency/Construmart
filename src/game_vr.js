@@ -8,6 +8,7 @@ export async function initGame() {
   orientCoinsToCamera();
   wireHotspots();
   wireButtons();
+  wireVREvents();
   mostrarAyudaSiPrimeraVez();
 }
 
@@ -86,27 +87,39 @@ function markFound(el, id) {
 function mostrarAyudaSiPrimeraVez() {
   let visto = false;
   try { visto = !!localStorage.getItem('cm_vr_help_seen'); } catch (_) {}
-  if (!visto) {
-    const panel = document.getElementById('help-panel');
-    if (panel) {
-      posicionarFrenteCamara(panel);
-      panel.setAttribute('visible', 'true');
-    }
+  if (visto) return;
+
+  const scene = document.querySelector('a-scene');
+  if (scene?.is('vr-mode')) {
+    mostrarAyuda3D();
+  } else {
+    document.getElementById('help-overlay')?.classList.remove('hidden');
+  }
+}
+
+function mostrarAyuda3D() {
+  const panel = document.getElementById('help-panel');
+  if (panel) {
+    posicionarFrenteCamara(panel);
+    panel.setAttribute('visible', 'true');
   }
 }
 
 // ── Botones ───────────────────────────────────────────────────────────────────
 
 function wireButtons() {
+  // Overlay HTML (modo plano) — click nativo, siempre funciona
+  document.getElementById('help-overlay-close')?.addEventListener('click', () => {
+    document.getElementById('help-overlay')?.classList.add('hidden');
+    try { localStorage.setItem('cm_vr_help_seen', '1'); } catch (_) {}
+  });
+
+  // Botones 3D A-Frame (modo VR en headset)
   document.getElementById('placa-close')?.addEventListener('click', cerrarPlaca);
 
   document.getElementById('help-btn')?.addEventListener('click', () => {
     if (busy || placaVisible) return;
-    const panel = document.getElementById('help-panel');
-    if (panel) {
-      posicionarFrenteCamara(panel);
-      panel.setAttribute('visible', 'true');
-    }
+    mostrarAyuda3D();
     setBusy(300);
   });
 
@@ -121,8 +134,7 @@ function wireButtons() {
     window.location.reload();
   });
 
-  // Fallback para Quest 2: en A-Frame 1.5 el laser-controls no siempre convierte
-  // selectstart (WebXR) → triggerdown → click. Disparamos click explícitamente.
+  // Fallback para Quest 2: selectstart (WebXR) → click en el elemento intersectado
   wireControllerSelect('right-hand');
   wireControllerSelect('left-hand');
 }
@@ -138,6 +150,33 @@ function wireControllerSelect(handId) {
   });
 }
 
+// ── Transiciones VR ───────────────────────────────────────────────────────────
+
+function wireVREvents() {
+  const scene = document.querySelector('a-scene');
+  if (!scene) return;
+
+  scene.addEventListener('enter-vr', () => {
+    // Ocultar overlay HTML — en VR no es visible ni interactuable
+    document.getElementById('help-overlay')?.classList.add('hidden');
+    // Si no vio la ayuda, mostrar panel 3D
+    try {
+      if (!localStorage.getItem('cm_vr_help_seen')) mostrarAyuda3D();
+    } catch (_) {}
+  });
+
+  scene.addEventListener('exit-vr', () => {
+    // Ocultar panel 3D de ayuda
+    document.getElementById('help-panel')?.setAttribute('visible', 'false');
+    // Si no vio la ayuda, volver al overlay HTML
+    try {
+      if (!localStorage.getItem('cm_vr_help_seen')) {
+        document.getElementById('help-overlay')?.classList.remove('hidden');
+      }
+    } catch (_) {}
+  });
+}
+
 // ── Utilidades ────────────────────────────────────────────────────────────────
 
 function setBusy(ms) {
@@ -145,8 +184,6 @@ function setBusy(ms) {
   setTimeout(() => { busy = false; }, ms);
 }
 
-// Posiciona el panel 3 m frente al usuario (solo eje horizontal),
-// orientado para mirarlo de frente independientemente de dónde esté parado.
 function posicionarFrenteCamara(panelEl) {
   const cam = document.getElementById('camera');
   if (!cam?.object3D) return;
@@ -165,7 +202,6 @@ function posicionarFrenteCamara(panelEl) {
 
   panelEl.setAttribute('position', { x: px, y: 1.6, z: pz });
 
-  // Rotar el panel para que su cara (+z local) apunte hacia la cámara
   const yDeg = +window.THREE.MathUtils.radToDeg(
     Math.atan2(-forward.x, -forward.z)
   ).toFixed(1);

@@ -14,12 +14,33 @@
 </head>
 <body class="bg-cm-navy text-white no-select overflow-hidden">
 
+  <!-- Splash de carga -->
   <div id="splash" class="fixed inset-0 z-50 bg-cm-navy flex flex-col items-center justify-center p-8 transition-opacity duration-500">
     <div class="cm-stripes h-1.5 w-full absolute top-0 left-0"></div>
     <img src="/logo-construmart-stacked.jpg" alt="Construmart" class="w-56 max-w-[60vw] rounded-2xl shadow-2xl mb-8" />
     <div class="text-cm-yellow text-[10px] tracking-[0.25em] font-bold mb-3 text-center max-w-xs leading-relaxed">TU PRIMERA VEZ EN LA NUEVA TIENDA CONSTRUMART ARICA</div>
     <div class="text-white/60 text-sm text-center max-w-xs mb-6">Preparando la experiencia...</div>
     <div class="inline-block w-8 h-8 border-4 border-cm-yellow border-t-transparent rounded-full animate-spin"></div>
+    <div class="cm-stripes h-1.5 w-full absolute bottom-0 left-0"></div>
+  </div>
+
+  <!-- Overlay HTML de ayuda — visible en modo plano (browser/móvil).
+       En VR (headset) este div se oculta y el panel 3D toma el relevo.
+       Botón nativo HTML: click 100% confiable sin depender de A-Frame. -->
+  <div id="help-overlay" class="hidden fixed inset-0 z-40 bg-cm-navy flex flex-col items-center justify-center p-8">
+    <div class="cm-stripes h-1.5 w-full absolute top-0 left-0"></div>
+    <img src="/logo-construmart-stacked.jpg" alt="Construmart" class="w-36 max-w-[45vw] rounded-xl shadow-xl mb-6" />
+    <h2 class="font-display text-cm-yellow text-3xl uppercase tracking-wider mb-2">Cómo jugar</h2>
+    <div class="cm-stripes h-0.5 w-20 mb-6"></div>
+    <ul class="text-white/80 text-sm text-center max-w-xs space-y-4 mb-8 leading-relaxed">
+      <li>Girá la cabeza para explorar<br>el pasillo en <strong class="text-white">360°</strong></li>
+      <li>Apuntá con el controlador y presioná<br>el gatillo sobre los <strong class="text-cm-yellow">círculos amarillos</strong></li>
+      <li>Encontrá las <strong class="text-cm-yellow">3 historias</strong><br>para completar la experiencia</li>
+    </ul>
+    <button id="help-overlay-close"
+      class="bg-cm-yellow text-cm-navy font-display font-extrabold uppercase tracking-wide text-lg px-10 py-4 rounded-md shadow-lg active:scale-95 transition">
+      ¡Entendido!
+    </button>
     <div class="cm-stripes h-1.5 w-full absolute bottom-0 left-0"></div>
   </div>
 
