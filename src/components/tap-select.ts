@@ -66,9 +66,18 @@ AFRAME.registerComponent('tap-select', {
       if (obj?.el) obj.el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     };
 
+    // En mobile, tras un touchend el navegador emite eventos de mouse
+    // "fantasma" (~300 ms después) sobre el mismo punto. Como escuchamos touch
+    // Y mouse, cada toque se procesaría DOS veces → el toggle del menú (la C)
+    // se abría y el fantasma lo volvía a cerrar/abrir. Marcamos el último touch
+    // e ignoramos los eventos de mouse que llegan poco después.
+    let lastTouch = 0;
+    const GHOST_MS = 700;
+
     // Touch (mobile) — passive para no pelear con look-controls (no preventDefault).
     let touchStart: { x: number; y: number; t: number } | null = null;
     const onTouchStart = (e: TouchEvent) => {
+      lastTouch = performance.now();
       if (e.touches.length !== 1) {
         touchStart = null;
         return;
@@ -76,18 +85,22 @@ AFRAME.registerComponent('tap-select', {
       touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: performance.now() };
     };
     const onTouchEnd = (e: TouchEvent) => {
+      lastTouch = performance.now();
       if (!touchStart || e.changedTouches.length !== 1) return;
       const t = e.changedTouches[0];
       tryTap(t.clientX, t.clientY, touchStart.x, touchStart.y, touchStart.t);
       touchStart = null;
     };
 
-    // Mouse (desktop) — para testear sin celular y como respaldo.
+    // Mouse (desktop) — para testear sin celular. Ignorado si viene de un touch
+    // reciente (evento fantasma), para no procesar el mismo toque dos veces.
     let mouseStart: { x: number; y: number; t: number } | null = null;
     const onMouseDown = (e: MouseEvent) => {
+      if (performance.now() - lastTouch < GHOST_MS) return;
       if (e.button === 0) mouseStart = { x: e.clientX, y: e.clientY, t: performance.now() };
     };
     const onMouseUp = (e: MouseEvent) => {
+      if (performance.now() - lastTouch < GHOST_MS) return;
       if (!mouseStart) return;
       tryTap(e.clientX, e.clientY, mouseStart.x, mouseStart.y, mouseStart.t);
       mouseStart = null;
