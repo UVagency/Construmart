@@ -30,6 +30,7 @@ function showFacadeOverlay(cb: FacadeCallbacks) {
 
   const el = document.createElement('div');
   el.id = 'facade-overlay';
+  el.className = 'cm-overlay';
   el.innerHTML = `
     <div class="facade-stripes"></div>
     <div class="facade-card">
