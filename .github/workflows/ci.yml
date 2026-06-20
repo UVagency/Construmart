@@ -1,0 +1,31 @@
+name: CI
+
+# Solo valida que el build pase (tsc + vite build).
+# El deploy a construmart.uv.agency/vr lo hace el VPS por sí mismo:
+# systemd timer construmart-vr-deploy.timer corre /home/ubuntu/construmart-vr/deploy.sh
+# cada minuto, que git-pull de origin/main, npm ci si cambió package-lock, build,
+# rsync a /var/www/construmart-vr. Ver CLAUDE.md → "Deployment".
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build

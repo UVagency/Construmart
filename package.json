@@ -1,21 +1,27 @@
 {
-  "name": "construmart-ar",
-  "private": true,
+  "name": "construmart-mobile",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "tsc && vite build",
+    "preview": "vite preview --host",
+    "optimize": "tsx scripts/optimize-panoramas.ts",
+    "optimize:lossless": "tsx scripts/optimize-panoramas.ts --lossless",
+    "gen-placeholders": "tsx scripts/gen-placeholder-panoramas.ts",
+    "fonts:fetch": "bash scripts/fetch-fonts.sh",
+    "gen-fonts": "bash scripts/gen-fonts.sh"
   },
   "dependencies": {
-    "qrcode": "^1.5.4"
+    "aframe": "^1.5.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.49",
-    "sharp": "^0.34.5",
-    "tailwindcss": "^3.4.15",
-    "vite": "^5.4.10"
+    "@vitejs/plugin-basic-ssl": "^1.1.0",
+    "msdf-bmfont-xml": "^2.8.0",
+    "sharp": "^0.33.4",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0"
   }
 }

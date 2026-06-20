@@ -6,3 +6,17 @@ dist-ssr
 *.local
 .DS_Store
 .vite
+*.log
+
+# Panorámicas fuente — pesadas, no versionar (se sirven los optimizados en public/panoramas/)
+panoramas/raw/*
+!panoramas/raw/README.md
+/panoramas/*.JPG
+/panoramas/*.jpg
+
+# TTF sources de Google Fonts — se bajan con `npm run fonts:fetch`. Los atlas MSDF
+# derivados (public/brand/fonts/*.fnt|.png) sí se commitean.
+/scripts/fonts-src/*.ttf
+
+# Brief del cliente (PDF) — vive local
+*.pdf

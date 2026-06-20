@@ -1,118 +1,32 @@
-# Construmart · Historias de pasillo
+# Construmart · Conoce la Tienda Antes de que Abra — **Mobile**
 
-Activación promocional web-AR para Construmart (piloto 1 sucursal). Campaña **"Historias de pasillo"**: el usuario escanea un QR en tienda, recorre el pasillo en 360° desde el browser del celular, destapa 4 "historias" escondidas entre los productos y recibe un cupón de descuento para canjear en caja.
+Recorrido 360° de la reinauguración de la tienda Construmart Arica, para **celular**, servido en la raíz del dominio: **https://construmart.uv.agency/**
 
-Ver [`BRIEF.md`](./BRIEF.md) para el contexto completo, arquitectura y schema de Supabase.
+El usuario abre la experiencia en el teléfono (vía QR), entra a la tienda y recorre **6 pasillos** en 360° moviendo el celular (giroscopio) y tocando los botones de navegación, hasta la pantalla final de "recorrido completo".
+
+Es el **port a mobile** del proyecto madre VR `UVagency/construmart-vr` (la misma experiencia para Meta Quest 2, servida bajo `/vr` desde ese otro repo). La diferencia central: la VR selecciona por **mirada + dwell**; acá la selección es por **tap**. La navegación espacial se mantiene idéntica (el "PASILLO ANTERIOR" queda a tus espaldas: te das vuelta con el teléfono y lo tocás).
 
 ## Stack
 
-- **Vite** (vanilla JS)
-- **A-Frame 1.5** (WebXR declarativo) + `aframe-event-set-component`
-- **Tailwind CSS** (paleta UV Agency)
-- **Supabase** (tracking + cupones, iteración 2)
+- **Vite + TypeScript**
+- **A-Frame 1.5** (escena 360° declarativa)
+- Tipografía **MSDF** (Barlow Condensed + Inter), panorámicas optimizadas en 3 niveles de resolución, Google Analytics 4.
 
-## Setup local
+## Desarrollo
 
 ```bash
-# 1. Instalar deps
 npm install
-
-# 2. Configurar env (opcional hasta tener Supabase listo)
-cp .env.example .env
-# editar .env con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
-
-# 3. Dev server
-npm run dev
-# → http://localhost:5173
+npm run dev       # https://0.0.0.0:5173  (cert self-signed; HTTPS es obligatorio para el giroscopio)
+npm run build     # tsc + vite build → dist/
+npm run preview   # sirve el build sobre HTTPS para probar en el celular por LAN
 ```
 
-Sin `.env` el juego corre en **modo offline**: no persiste sesiones y al completar los 4 hotspots redirige a `/success.html` con un código placeholder (`UV-DEMO-XXXXXX`). Útil para iterar la UI sin backend.
+Probar en celular: abrir la URL `Network:` que imprime Vite (`https://<IP-LAN>:5173/`) desde el teléfono en la misma Wi-Fi y aceptar el cert una vez.
 
-## Rutas
+## Documentación
 
-| Ruta | Pantalla |
-|------|----------|
-| `/` | Landing + captura de lead opcional |
-| `/experience.html` | Escena A-Frame 360° con hotspots |
-| `/success.html?code=XXX` | Pantalla final con cupón |
+Ver **[`CLAUDE.md`](./CLAUDE.md)** para la arquitectura completa (router, escenas, pipeline de panorámicas/fuentes, deploy) y, sobre todo, la sección **"Relationship to the VR mother repo"**: lista exactamente qué archivos divergen del repo madre, para re-portar cambios sin romper la paridad.
 
-## Estructura
+## Deploy
 
-```
-.
-├── index.html              # Landing
-├── experience.html         # Scene A-Frame 360°
-├── success.html            # Cupón
-├── src/
-│   ├── main.js             # Router + init por página
-│   ├── game.js             # Lógica de hotspots + contador
-│   ├── supabase.js         # Cliente (modo offline si no hay env)
-│   └── styles.css          # Tailwind + custom
-├── public/
-│   ├── 360/tienda-01.jpg   # Foto equirectangular (placeholder por ahora)
-│   └── assets/             # SFX + íconos
-├── supabase/functions/     # Edge functions (iteración 2)
-├── tailwind.config.js
-├── postcss.config.js
-├── vite.config.js
-└── netlify.toml
-```
-
-## Paleta UV Agency (Tailwind)
-
-| Token | Hex |
-|-------|-----|
-| `uv-orange` | `#FE7F2D` |
-| `uv-teal` | `#6BD8D7` |
-| `uv-dark` | `#2C3E3C` |
-| `uv-cream` | `#F5F6E8` |
-
-## Assets que faltan (TODOs reales)
-
-- [ ] `public/360/tienda-01.jpg` → hoy es placeholder genérico, reemplazar por foto 360 real de la tienda (equirectangular, 4096×2048 mín, ~1–2 MB con compresión `.webp` si quality aguanta).
-- [ ] `public/assets/found.mp3` → sonido al encontrar hotspot.
-- [ ] `public/assets/complete.mp3` → sonido al completar.
-- [ ] `public/logo-construmart.svg` → logo en landing.
-- [ ] Posiciones finales de hotspots en `experience.html` — iterar sobre la foto real.
-
-## Deploy a Netlify
-
-### Opción A — CLI (recomendada para primera vez)
-
-```bash
-npm install -g netlify-cli
-netlify login
-netlify init        # creá un nuevo site o linkealo con uno existente
-netlify deploy --build --prod
-```
-
-### Opción B — Git + UI
-
-1. Push del repo a GitHub.
-2. En Netlify: **Add new site → Import an existing project** → pickear el repo.
-3. Build command: `npm run build` · Publish directory: `dist` (ya configurado en `netlify.toml`).
-4. **Site settings → Environment variables**: agregar
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-5. Trigger deploy.
-
-### Dominio
-
-Apuntar `ar.construmart.cl` (o subdominio UV) a Netlify:
-- **Domain management → Add custom domain**
-- Seguir instrucciones de DNS (CNAME a `<site>.netlify.app` o usar Netlify DNS).
-
-## Iteración 2 — pendiente
-
-- [ ] Supabase project: schema (ver `BRIEF.md`) + RLS.
-- [ ] Edge function `claim-coupon` (código en brief) + deploy con `supabase functions deploy claim-coupon`.
-- [ ] Generar pool de cupones únicos (2× el volumen esperado).
-- [ ] Foto 360 real + reposicionamiento de hotspots.
-- [ ] QR apuntando al dominio productivo.
-
-## QA checklist (mobile)
-
-- iPhone (Safari) gama media — permiso giroscopio se pide con tap del usuario.
-- Android (Chrome) gama media.
-- 4G lento — verificar tamaño de foto 360.
-- Flujo end-to-end: landing → 4 hotspots → success → copiar cupón.
+Productivo: VPS con Caddy desde `/var/www/construmart`, vía [`deploy.sh`](deploy.sh) en el servidor (`git pull` → `npm run build` → `rsync dist/`). El repo madre VR deploya aparte a `/var/www/construmart-vr/` bajo `/vr` — no mezclar los dos rsync `--delete`.

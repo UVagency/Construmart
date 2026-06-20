@@ -1,0 +1,46 @@
+{
+  "aisles": [
+    {
+      "id": "ferreteria",
+      "name": "Ferretería",
+      "panorama": "/panoramas/ferreteria.jpg",
+      "placeholderColor": "#3f3f5a",
+      "heading": 0
+    },
+    {
+      "id": "herramientas",
+      "name": "Herramientas",
+      "panorama": "/panoramas/herramientas.jpg",
+      "placeholderColor": "#4a4030",
+      "heading": 0
+    },
+    {
+      "id": "electrico",
+      "name": "Eléctrico",
+      "panorama": "/panoramas/electrico.jpg",
+      "placeholderColor": "#1f3b5a",
+      "heading": 90
+    },
+    {
+      "id": "gasfiteria",
+      "name": "Gasfitería",
+      "panorama": "/panoramas/gasfiteria.jpg",
+      "placeholderColor": "#1f5a4a",
+      "heading": 90
+    },
+    {
+      "id": "revestimiento",
+      "name": "Revestimiento",
+      "panorama": "/panoramas/revestimiento.jpg",
+      "placeholderColor": "#5a3a1f",
+      "heading": 0
+    },
+    {
+      "id": "pinturas",
+      "name": "Pinturas",
+      "panorama": "/panoramas/pinturas.jpg",
+      "placeholderColor": "#4a2f4a",
+      "heading": -20
+    }
+  ]
+}

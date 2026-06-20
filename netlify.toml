@@ -1,24 +1,27 @@
+# Config de respaldo (el deploy productivo es el VPS Caddy vía deploy.sh).
+# La app es un SPA A-Frame de una sola página servido desde la raíz.
 [build]
   command = "npm run build"
   publish = "dist"
 
-[[headers]]
-  for = "/360/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
+# Assets con hash + panorámicas + marca: cacheables de forma inmutable.
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# SPA-ish: let /experience and /success resolve without .html
-[[redirects]]
-  from = "/experience"
-  to = "/experience.html"
-  status = 200
+[[headers]]
+  for = "/panoramas/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
+[[headers]]
+  for = "/brand/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# SPA: cualquier ruta resuelve al index (el router es client-side).
 [[redirects]]
-  from = "/success"
-  to = "/success.html"
+  from = "/*"
+  to = "/index.html"
   status = 200
