@@ -1,6 +1,7 @@
 import { COLORS, ASSETS } from '../theme';
 import { makeText } from '../components/text-msdf';
 import { requestMotionPermission } from '../state/motion';
+import { keepFitted } from '../state/viewport';
 
 export interface FacadeCallbacks {
   // Entra a la tienda: hace el efecto de "entrar a ConstruMart" y deja al
@@ -18,9 +19,15 @@ const Z = -4.2;
 
 export function renderFacade(root: HTMLElement, cb: FacadeCallbacks) {
   // Backdrop navy de base — fallback mientras carga la foto (o si no existe aún).
+  // Va al root (no al wrap): es el fondo, no debe escalarse/alejarse.
   const sky = document.createElement('a-sky');
   sky.setAttribute('color', COLORS.navy);
   root.appendChild(sky);
+
+  // Contenedor de la tarjeta. En portrait el FOV horizontal es angosto y la
+  // tarjeta se recortaba a lo ancho; `keepFitted` la aleja lo justo para que
+  // entre completa (no toca landscape) y reacciona al rotar la pantalla.
+  const wrap = document.createElement('a-entity');
 
   // (La foto plana de la fachada se removió a pedido del cliente: el splash
   // queda como tarjeta de marca sobre navy. El efecto de entrada `enterStore`
@@ -32,10 +39,10 @@ export function renderFacade(root: HTMLElement, cb: FacadeCallbacks) {
   panel.setAttribute('height', '3.2');
   panel.setAttribute('position', `0 1.5 ${Z}`);
   panel.setAttribute('material', `shader: flat; color: ${COLORS.navy}; opacity: 0.9; transparent: true`);
-  root.appendChild(panel);
+  wrap.appendChild(panel);
 
   // Stripe decorativa arriba del panel.
-  root.appendChild(stripesBar(0, 3.05, Z + 0.02, 4.6, 0.06, 5));
+  wrap.appendChild(stripesBar(0, 3.05, Z + 0.02, 4.6, 0.06, 5));
 
   // Logo wordmark blanco.
   const logo = document.createElement('a-image');
@@ -44,7 +51,7 @@ export function renderFacade(root: HTMLElement, cb: FacadeCallbacks) {
   logo.setAttribute('height', '0.41');
   logo.setAttribute('position', `0 2.55 ${Z + 0.02}`);
   logo.setAttribute('material', 'shader: flat; transparent: true; alphaTest: 0.05');
-  root.appendChild(logo);
+  wrap.appendChild(logo);
 
   // Eyebrow.
   const eyebrow = makeText({
@@ -56,7 +63,7 @@ export function renderFacade(root: HTMLElement, cb: FacadeCallbacks) {
     letterSpacing: 6,
   });
   eyebrow.setAttribute('position', `0 2.05 ${Z + 0.01}`);
-  root.appendChild(eyebrow);
+  wrap.appendChild(eyebrow);
 
   // Titular.
   const head1 = makeText({
@@ -67,7 +74,7 @@ export function renderFacade(root: HTMLElement, cb: FacadeCallbacks) {
     wrapCount: 18,
   });
   head1.setAttribute('position', `0 1.62 ${Z + 0.01}`);
-  root.appendChild(head1);
+  wrap.appendChild(head1);
 
   const head2 = makeText({
     value: 'ANTES DE QUE ABRA',
@@ -77,7 +84,7 @@ export function renderFacade(root: HTMLElement, cb: FacadeCallbacks) {
     wrapCount: 18,
   });
   head2.setAttribute('position', `0 1.05 ${Z + 0.01}`);
-  root.appendChild(head2);
+  wrap.appendChild(head2);
 
   const sub = makeText({
     value: 'Recorre los pasillos de Construmart Arica en 360.',
@@ -87,13 +94,17 @@ export function renderFacade(root: HTMLElement, cb: FacadeCallbacks) {
     width: 4.2,
   });
   sub.setAttribute('position', `0 0.55 ${Z + 0.01}`);
-  root.appendChild(sub);
+  wrap.appendChild(sub);
 
   // CTA "ENTRAR" — tap. El tap pide además el permiso de giroscopio iOS.
-  root.appendChild(buildEnterButton(cb.onEnter, Z));
+  wrap.appendChild(buildEnterButton(cb.onEnter, Z));
 
   // Reset discreto del recorrido (visor pasa de mano en mano en terreno).
-  root.appendChild(buildResetButton(cb.onReset, Z));
+  wrap.appendChild(buildResetButton(cb.onReset, Z));
+
+  root.appendChild(wrap);
+  // Ancho del elemento más ancho (el panel, 5.4) + aire; plano principal a |Z|.
+  keepFitted(wrap, 5.8, Math.abs(Z));
 }
 
 function buildResetButton(onReset: () => void, z: number): HTMLElement {

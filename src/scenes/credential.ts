@@ -1,5 +1,6 @@
 import { COLORS, ASSETS } from '../theme';
 import { makeText } from '../components/text-msdf';
+import { keepFitted } from '../state/viewport';
 
 interface CredentialCallbacks {
   onBack: () => void;
@@ -12,8 +13,13 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
   sky.setAttribute('color', COLORS.navy);
   root.appendChild(sky);
 
+  // Contenedor ajustable (cámara fija): en portrait el contenido ancho se
+  // recortaba a lo ancho; `keepFitted` lo aleja lo justo para que entre. El
+  // <a-sky> de fondo queda afuera.
+  const wrap = document.createElement('a-entity');
+
   // Stripe top
-  root.appendChild(stripesBar(0, 4.0, Z + 0.02, 6.0, 0.07, 5));
+  wrap.appendChild(stripesBar(0, 4.0, Z + 0.02, 6.0, 0.07, 5));
 
   // Logo blanco
   const logo = document.createElement('a-image');
@@ -22,7 +28,7 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
   logo.setAttribute('height', '0.38');
   logo.setAttribute('position', `0 3.35 ${Z + 0.02}`);
   logo.setAttribute('material', 'shader: flat; transparent: true; alphaTest: 0.05');
-  root.appendChild(logo);
+  wrap.appendChild(logo);
 
   // Eyebrow
   const eyebrow = makeText({
@@ -33,7 +39,7 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
     letterSpacing: 6,
   });
   eyebrow.setAttribute('position', `0 2.80 ${Z + 0.01}`);
-  root.appendChild(eyebrow);
+  wrap.appendChild(eyebrow);
 
   // Headline
   const head1 = makeText({
@@ -44,7 +50,7 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
     wrapCount: 22,
   });
   head1.setAttribute('position', `0 2.40 ${Z + 0.01}`);
-  root.appendChild(head1);
+  wrap.appendChild(head1);
 
   const head2 = makeText({
     value: 'POR DESCUBRIR!',
@@ -54,10 +60,10 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
     wrapCount: 22,
   });
   head2.setAttribute('position', `0 1.65 ${Z + 0.01}`);
-  root.appendChild(head2);
+  wrap.appendChild(head2);
 
   // Stripe bar — bien separado para no invadir la altura visual del head2.
-  root.appendChild(stripesBar(0, 1.10, Z + 0.01, 1.0, 0.05, 4));
+  wrap.appendChild(stripesBar(0, 1.10, Z + 0.01, 1.0, 0.05, 4));
 
   // Sub (Inter Regular — tildes en "reinauguración")
   const sub = makeText({
@@ -69,7 +75,7 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
     width: 5.0,
   });
   sub.setAttribute('position', `0 0.7 ${Z + 0.01}`);
-  root.appendChild(sub);
+  wrap.appendChild(sub);
 
   // Badge central
   const badgeWrap = document.createElement('a-entity');
@@ -115,7 +121,7 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
   badgeSubtext.setAttribute('position', '0 -0.27 0.01');
   badgeWrap.appendChild(badgeSubtext);
 
-  root.appendChild(badgeWrap);
+  wrap.appendChild(badgeWrap);
 
   // CTA
   const btn = document.createElement('a-entity');
@@ -141,7 +147,11 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
   btn.appendChild(label);
 
   btn.addEventListener('click', cb.onBack);
-  root.appendChild(btn);
+  wrap.appendChild(btn);
+
+  root.appendChild(wrap);
+  // Ancho del elemento más ancho (la stripe top, 6.0) + aire; plano a |Z|.
+  keepFitted(wrap, 6.2, Math.abs(Z));
 }
 
 function stripesBar(x: number, y: number, z: number, width: number, height: number, repeatX: number): HTMLElement {
