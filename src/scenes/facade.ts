@@ -1,7 +1,4 @@
-import { COLORS, ASSETS } from '../theme';
-import { makeText } from '../components/text-msdf';
 import { requestMotionPermission } from '../state/motion';
-import { keepFitted } from '../state/viewport';
 
 export interface FacadeCallbacks {
   // Entra a la tienda: hace el efecto de "entrar a ConstruMart" y deja al
@@ -12,192 +9,58 @@ export interface FacadeCallbacks {
   onReset: () => void;
 }
 
-// Plano de bienvenida: la fachada de la tienda. Es una foto PLANA (no 360°),
-// tal como se acordó con el cliente — la entrada al recorrido. Look-controls
-// están off (cámara fija) para que la composición no se mueva en mobile/desktop.
-const Z = -4.2;
-
+// Splash de bienvenida. A diferencia de la versión VR (texto 3D de cámara fija),
+// en mobile es un OVERLAY HTML full-bleed: aprovecha toda la pantalla del
+// celular y es naturalmente responsivo (sin recortarse en portrait). Por debajo
+// la escena 3D queda en navy; el ENTRAR pide el permiso de giroscopio y dispara
+// la transición 3D de "entrar a la tienda" mientras el overlay se desvanece.
 export function renderFacade(root: HTMLElement, cb: FacadeCallbacks) {
-  // Backdrop navy de base — fallback mientras carga la foto (o si no existe aún).
-  // Va al root (no al wrap): es el fondo, no debe escalarse/alejarse.
+  // Fondo navy 3D — lo que se ve detrás del overlay y mientras se desvanece al
+  // entrar (antes de que llegue el primer pasillo).
   const sky = document.createElement('a-sky');
-  sky.setAttribute('color', COLORS.navy);
+  sky.setAttribute('color', '#041E42');
   root.appendChild(sky);
 
-  // Contenedor de la tarjeta. En portrait el FOV horizontal es angosto y la
-  // tarjeta se recortaba a lo ancho; `keepFitted` la aleja lo justo para que
-  // entre completa (no toca landscape) y reacciona al rotar la pantalla.
-  const wrap = document.createElement('a-entity');
-
-  // (La foto plana de la fachada se removió a pedido del cliente: el splash
-  // queda como tarjeta de marca sobre navy. El efecto de entrada `enterStore`
-  // sigue andando — su zoom a #facade-photo está guardado con un if.)
-
-  // Panel navy semiopaco para legibilidad del texto sobre el fondo.
-  const panel = document.createElement('a-plane');
-  panel.setAttribute('width', '5.4');
-  panel.setAttribute('height', '3.2');
-  panel.setAttribute('position', `0 1.5 ${Z}`);
-  panel.setAttribute('material', `shader: flat; color: ${COLORS.navy}; opacity: 0.9; transparent: true`);
-  wrap.appendChild(panel);
-
-  // Stripe decorativa arriba del panel.
-  wrap.appendChild(stripesBar(0, 3.05, Z + 0.02, 4.6, 0.06, 5));
-
-  // Logo wordmark blanco.
-  const logo = document.createElement('a-image');
-  logo.setAttribute('src', ASSETS.logoWhite);
-  logo.setAttribute('width', '2.1');
-  logo.setAttribute('height', '0.41');
-  logo.setAttribute('position', `0 2.55 ${Z + 0.02}`);
-  logo.setAttribute('material', 'shader: flat; transparent: true; alphaTest: 0.05');
-  wrap.appendChild(logo);
-
-  // Eyebrow.
-  const eyebrow = makeText({
-    value: 'E X P E R I E N C I A   3 6 0',
-    font: 'eyebrow',
-    color: COLORS.white,
-    opacity: 0.7,
-    width: 2.8,
-    letterSpacing: 6,
-  });
-  eyebrow.setAttribute('position', `0 2.05 ${Z + 0.01}`);
-  wrap.appendChild(eyebrow);
-
-  // Titular.
-  const head1 = makeText({
-    value: 'CONOCE LA TIENDA',
-    font: 'display',
-    color: COLORS.yellow,
-    width: 5.0,
-    wrapCount: 18,
-  });
-  head1.setAttribute('position', `0 1.62 ${Z + 0.01}`);
-  wrap.appendChild(head1);
-
-  const head2 = makeText({
-    value: 'ANTES DE QUE ABRA',
-    font: 'display',
-    color: COLORS.yellow,
-    width: 5.0,
-    wrapCount: 18,
-  });
-  head2.setAttribute('position', `0 1.05 ${Z + 0.01}`);
-  wrap.appendChild(head2);
-
-  const sub = makeText({
-    value: 'Recorre los pasillos de Construmart Arica en 360.',
-    font: 'body',
-    color: COLORS.white,
-    opacity: 0.85,
-    width: 4.2,
-  });
-  sub.setAttribute('position', `0 0.55 ${Z + 0.01}`);
-  wrap.appendChild(sub);
-
-  // CTA "ENTRAR" — tap. El tap pide además el permiso de giroscopio iOS.
-  wrap.appendChild(buildEnterButton(cb.onEnter, Z));
-
-  // Reset discreto del recorrido (visor pasa de mano en mano en terreno).
-  wrap.appendChild(buildResetButton(cb.onReset, Z));
-
-  root.appendChild(wrap);
-  // Ancho del elemento más ancho (el panel, 5.4) + aire; plano principal a |Z|.
-  keepFitted(wrap, 5.8, Math.abs(Z));
+  showFacadeOverlay(cb);
 }
 
-function buildResetButton(onReset: () => void, z: number): HTMLElement {
-  const btn = document.createElement('a-entity');
-  btn.setAttribute('hoverable', 'scale: 1.06; duration: 160');
-  btn.setAttribute('position', `0 -0.85 ${z + 0.5}`);
+function showFacadeOverlay(cb: FacadeCallbacks) {
+  // Idempotente: si ya había un overlay (p. ej. al reiniciar), lo reemplaza.
+  document.getElementById('facade-overlay')?.remove();
 
-  const border = document.createElement('a-plane');
-  border.setAttribute('width', '2.0');
-  border.setAttribute('height', '0.4');
-  border.setAttribute('color', COLORS.white);
-  border.setAttribute('material', 'shader: flat; opacity: 0.2');
-  border.setAttribute('position', '0 0 -0.01');
-  btn.appendChild(border);
+  const el = document.createElement('div');
+  el.id = 'facade-overlay';
+  el.innerHTML = `
+    <div class="facade-stripes"></div>
+    <div class="facade-card">
+      <div class="facade-head">
+        <img class="facade-logo" src="/brand/logo-construmart-white.png" alt="Construmart" />
+        <div class="facade-eyebrow">Experiencia 360°</div>
+      </div>
+      <div class="facade-body">
+        <h1 class="facade-title">Conoce la tienda<br>antes de que abra</h1>
+        <p class="facade-sub">Recorré los pasillos de Construmart Arica en 360°.</p>
+      </div>
+      <div class="facade-actions">
+        <button id="facade-enter" class="facade-cta" type="button">Entrar a la tienda</button>
+        <button id="facade-reset" class="facade-reset" type="button">Reiniciar recorrido</button>
+      </div>
+    </div>
+    <div class="facade-stripes"></div>
+  `;
+  document.body.appendChild(el);
 
-  const fill = document.createElement('a-plane');
-  fill.setAttribute('width', '1.96');
-  fill.setAttribute('height', '0.36');
-  fill.setAttribute('color', COLORS.navyDeep);
-  fill.setAttribute('material', 'shader: flat');
-  fill.classList.add('clickable');
-  btn.appendChild(fill);
-
-  const label = makeText({
-    value: 'REINICIAR RECORRIDO',
-    font: 'eyebrow',
-    color: COLORS.white,
-    opacity: 0.8,
-    width: 2.3,
-    letterSpacing: 3,
-  });
-  label.setAttribute('position', '0 0 0.01');
-  btn.appendChild(label);
-
-  btn.addEventListener('click', onReset);
-  return btn;
-}
-
-function buildEnterButton(onEnter: () => void, z: number): HTMLElement {
-  const btn = document.createElement('a-entity');
-  btn.setAttribute('hoverable', 'scale: 1.05; duration: 160');
-  btn.setAttribute('position', `0 0.0 ${z + 0.5}`);
-  btn.setAttribute(
-    'animation__pulse',
-    'property: scale; from: 1 1 1; to: 1.04 1.04 1; dir: alternate; loop: true; dur: 1100; easing: easeInOutSine',
-  );
-
-  const bg = document.createElement('a-plane');
-  bg.setAttribute('width', '3.1');
-  bg.setAttribute('height', '0.6');
-  bg.setAttribute('color', COLORS.yellow);
-  bg.setAttribute('material', 'shader: flat');
-  bg.classList.add('clickable');
-  btn.appendChild(bg);
-
-  const label = makeText({
-    value: 'ENTRAR A LA TIENDA',
-    font: 'eyebrow',
-    color: COLORS.navy,
-    width: 2.7,
-    letterSpacing: 2,
-  });
-  label.setAttribute('position', '0 0.05 0.01');
-  btn.appendChild(label);
-
-  const hint = makeText({
-    value: 'Tocá para entrar',
-    font: 'body',
-    color: COLORS.navy,
-    opacity: 0.7,
-    width: 1.8,
-  });
-  hint.setAttribute('position', '0 -0.16 0.01');
-  btn.appendChild(hint);
-
-  // El tap de ENTRAR es el gesto de usuario que iOS exige para habilitar el
-  // giroscopio (magic-window) de los pasillos. Lo pedimos acá y, pase lo que
-  // pase con el permiso, entramos a la tienda.
-  btn.addEventListener('click', () => {
+  el.querySelector('#facade-enter')!.addEventListener('click', () => {
+    // El tap es el gesto que iOS exige para habilitar el giroscopio.
     void requestMotionPermission();
-    onEnter();
+    // Desvanecer el overlay mientras la transición 3D revela la tienda.
+    el.classList.add('is-leaving');
+    setTimeout(() => el.remove(), 520);
+    cb.onEnter();
   });
-  return btn;
-}
 
-function stripesBar(x: number, y: number, z: number, width: number, height: number, repeatX: number): HTMLElement {
-  const bar = document.createElement('a-plane');
-  bar.setAttribute('width', `${width}`);
-  bar.setAttribute('height', `${height}`);
-  bar.setAttribute('position', `${x} ${y} ${z}`);
-  bar.setAttribute(
-    'material',
-    `src: url(${ASSETS.stripes}); shader: flat; repeat: ${repeatX} 1; transparent: false`,
-  );
-  return bar;
+  el.querySelector('#facade-reset')!.addEventListener('click', () => {
+    el.remove();
+    cb.onReset(); // re-renderiza la fachada (recrea el overlay)
+  });
 }

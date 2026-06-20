@@ -12,3 +12,132 @@ body {
   overflow: hidden;
   height: 100%;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Splash de bienvenida (overlay HTML full-bleed sobre la escena).
+   Reemplaza la tarjeta 3D de la versión VR para aprovechar toda la
+   pantalla del celular y ser responsivo sin recortes. Ver src/scenes/facade.ts
+   ───────────────────────────────────────────────────────────── */
+#facade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  background: #041E42;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  animation: facade-in 0.4s ease both;
+  transition: opacity 0.5s ease;
+}
+
+#facade-overlay.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes facade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Franja diagonal amarilla (acento de marca) arriba y abajo. */
+.facade-stripes {
+  flex: 0 0 auto;
+  height: 8px;
+  background-image: repeating-linear-gradient(135deg, #ffb81c 0 10px, #ffd500 10px 20px);
+}
+
+.facade-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  padding: 6vh 8vw calc(env(safe-area-inset-bottom, 0px) + 4vh);
+}
+
+.facade-head,
+.facade-body,
+.facade-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.facade-logo {
+  width: min(54vw, 240px);
+  height: auto;
+  margin-bottom: 2.2vh;
+}
+
+.facade-eyebrow {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(10px, 3vw, 13px);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.facade-title {
+  margin: 0 0 2.2vh;
+  font-family: 'Barlow Condensed', system-ui, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.95;
+  color: #ffb81c;
+  font-size: clamp(34px, 12vw, 76px);
+}
+
+.facade-sub {
+  margin: 0;
+  max-width: 26ch;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(15px, 4.2vw, 20px);
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.facade-cta {
+  width: 100%;
+  max-width: 440px;
+  border: 0;
+  border-radius: 12px;
+  padding: 20px 28px;
+  background: #ffb81c;
+  color: #041e42;
+  font-family: 'Barlow Condensed', system-ui, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: clamp(20px, 6vw, 28px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  animation: facade-pulse 1.8s infinite;
+}
+
+.facade-cta:active {
+  transform: scale(0.97);
+}
+
+@keyframes facade-pulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 0 rgba(255, 184, 28, 0.55); }
+  70% { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 16px rgba(255, 184, 28, 0); }
+}
+
+.facade-reset {
+  margin-top: 16px;
+  background: none;
+  border: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
