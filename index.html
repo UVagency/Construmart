@@ -33,12 +33,17 @@
   </head>
   <body>
     <!-- Experiencia MOBILE: selección por TAP (componente tap-select), sin botón
-         de gafas WebXR (vr-mode-ui off) — la versión VR vive en el otro repo. -->
+         de gafas WebXR (vr-mode-ui off) — la versión VR vive en el otro repo.
+         device-orientation-permission-ui off: el modal de permiso por defecto de
+         A-Frame (iOS) es feo y se superpone con nuestro pedido. Pedimos el permiso
+         del giroscopio nosotros, una sola vez, en el tap de "ENTRAR A LA TIENDA"
+         (src/state/motion.ts) — queda solo el diálogo nativo del sistema. -->
     <a-scene
       id="scene"
       background="color: #041E42"
       renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
       vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
       tap-select
     >
       <a-assets id="assets"></a-assets>
