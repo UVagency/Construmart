@@ -48,9 +48,9 @@ const SIDE_X = 1.95; // posición horizontal del "salir" en el menú abierto
 // espacial): SIGUIENTE al frente y ANTERIOR a las espaldas (darse vuelta), ambos
 // a la MISMA altura (arriba) — mirás hacia arriba para cualquiera de los dos.
 const NEXT_POS = '0 2.645 -5.52';
-const NEXT_SCALE = 1.104; // +20% sobre 0.92 (carteles más grandes para mobile)
+const NEXT_SCALE = 1.3248; // +20% sobre 1.104 (segunda vuelta de +20%)
 const PREV_POS = '0 2.645 4.44';
-const PREV_SCALE = 1.02; // +20% sobre 0.85
+const PREV_SCALE = 1.224; // +20% sobre 1.02
 
 export function buildNavMenu(opts: NavMenuOptions): HTMLElement {
   const root = document.createElement('a-entity');
