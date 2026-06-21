@@ -38,6 +38,10 @@ export function makeText(opts: TextOpts): HTMLElement {
     `font: ${fontPath}`,
     `shader: msdf`,
     `negate: false`,
+    // side: double → el texto se ve desde ambas caras. Sin esto, los botones
+    // rotados (p. ej. "PASILLO ANTERIOR", rotado 180° para leerse al darse
+    // vuelta) podían quedar con la cara legible descartada (culling) y no verse.
+    `side: double`,
     `align: ${opts.align ?? 'center'}`,
     `width: ${opts.width ?? 4}`,
     `color: ${opts.color ?? '#FFFFFF'}`,
