@@ -76,71 +76,66 @@ export function buildAisleHuds(root: HTMLElement, cb: AisleCallbacks) {
   if (tuneEnabled()) root.appendChild(buildHeadingTuner());
 }
 
+// Devuelve la ruta del tier de baja resolución (public/panoramas/lowres/<id>.jpg)
+// a partir de la ruta base sin extensión (.../panoramas/<id>).
+export function lowresOf(base: string): string {
+  return base.replace(/\/([^/]+)$/, '/lowres/$1.jpg');
+}
+
 function loadPanorama(sky: HTMLElement, panoramaPath: string): Promise<void> {
   const base = panoramaPath.replace(/\.(jpe?g|png)$/i, '');
+  const lowres = lowresOf(base);
   const webp = `${base}.webp`;
   const jpeg = `${base}.jpg`;
   const hires = `${base}.hi.webp`;
 
-  return new Promise((resolve) => {
-    // Una vez mostrada la versión estándar, baja la hi-res (resolución nativa) y
-    // hace upgrade del sky cuando está lista. Si el preload del home ya la dejó
-    // en cache, el swap es instantáneo; si no, se baja en background. Cuando no
-    // existe hi-res (.hi.webp 404) simplemente se queda en la estándar.
-    const upgradeToHiRes = () => {
-      const img = new Image();
-      img.onload = () => {
-        // El usuario pudo salir del pasillo mientras bajaba: el sky se quita del
-        // DOM al cambiar de escena. No hagas el swap si ya no está conectado.
-        if (sky.isConnected) sky.setAttribute('src', hires);
+  // Aplica `src` al sky y resuelve cuando la textura está REALMENTE subida a la
+  // GPU (evento materialtextureloaded) — no al setear el src. Devuelve false si
+  // el archivo no existe (404), detectado con un probe previo, para no romper el
+  // material con un src inválido. Con red de seguridad por timeout.
+  const applyTier = (src: string): Promise<boolean> =>
+    new Promise((res) => {
+      let settled = false;
+      const done = (ok: boolean) => {
+        if (settled) return;
+        settled = true;
+        res(ok);
       };
-      img.src = hires;
-    };
-
-    const showStandard = (src: string) => {
-      // Resolver (y por ende arrancar el fade-in del "vuelo") recién cuando la
-      // textura está REALMENTE aplicada al material — no al setear el src. Si
-      // resolvíamos antes, el cielo se fundía en blanco un instante mientras la
-      // textura terminaba de subir a la GPU → flash blanco al entrar al pasillo.
-      let resolved = false;
-      const finish = () => {
-        if (resolved) return;
-        resolved = true;
-        resolve();
+      const probe = new Image();
+      probe.onload = () => {
+        sky.addEventListener(
+          'materialtextureloaded',
+          () => {
+            sky.setAttribute('color', '#FFFFFF'); // con textura: sin tinte
+            done(true);
+          },
+          { once: true },
+        );
+        sky.setAttribute('src', src);
+        setTimeout(() => done(true), 4000); // red de seguridad
       };
+      probe.onerror = () => done(false); // 404: tier inexistente, se salta
+      probe.src = src;
+    });
 
-      sky.addEventListener(
-        'materialtextureloaded',
-        () => {
-          // Ya con textura aplicada: quitar el placeholderColor (que la tiñe).
-          sky.setAttribute('color', '#FFFFFF');
-          finish();
-          upgradeToHiRes();
-        },
-        { once: true },
-      );
-
-      // Red de seguridad: si el evento no llegara, no trabar la transición.
-      // Mantenemos el placeholderColor (no forzamos blanco) para no introducir
-      // el flash que justamente estamos evitando.
-      setTimeout(finish, 3000);
-
-      // El src se setea con el placeholderColor todavía puesto; el cielo queda
-      // invisible (opacity 0) durante la transición hasta que el fade lo revela.
-      sky.setAttribute('src', src);
+  return new Promise((resolveReady) => {
+    let ready = false;
+    const markReady = () => {
+      if (!ready) {
+        ready = true;
+        resolveReady();
+      }
     };
 
-    const tryFmt = (src: string, onLoad: () => void, onFail: () => void) => {
-      const img = new Image();
-      img.onload = onLoad;
-      img.onerror = onFail;
-      img.src = src;
-    };
-
-    tryFmt(
-      webp,
-      () => showStandard(webp),
-      () => tryFmt(jpeg, () => showStandard(jpeg), () => resolve()),
-    );
+    // Carga progresiva en 3 tiers. La baja resolución (chica) sube a la GPU casi
+    // al instante, así al entrar al pasillo se ve la imagen (borrosa) en vez de
+    // un color sólido; luego se reemplaza por la estándar y por la hi-res. La
+    // transición arranca (`ready`) con el primer tier visible.
+    void (async () => {
+      if (await applyTier(lowres)) markReady();
+      const std = (await applyTier(webp)) || (await applyTier(jpeg));
+      markReady(); // si no hubo lowres, igual arrancamos con la estándar
+      if (std) await applyTier(hires);
+    })();
   });
 }

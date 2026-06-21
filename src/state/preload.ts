@@ -1,5 +1,6 @@
 import type { Aisle } from '../types';
 import { asset, ASSETS, FONTS } from '../theme';
+import { lowresOf } from '../scenes/aisle';
 
 // Assets de UI (no panorámicas) que se usan al armar el primer pasillo: la
 // cartelería de los botones y los atlas de fuente del texto. Si no están en
@@ -64,9 +65,11 @@ export function preloadPanoramas(aisles: Aisle[]): PreloadHandle {
   const subs = new Set<(d: number, t: number) => void>();
   const notify = () => subs.forEach((cb) => cb(done, total));
 
-  // Fase estándar de panorámicas, secuencial.
+  // Fase estándar de panorámicas, secuencial. Cada pasillo: primero el lowres
+  // (lo que se ve apenas entrás, sube a GPU al instante) y después el estándar.
   const panoramasReady = (async () => {
     for (const base of bases) {
+      await warmImage(lowresOf(base));
       await loadStandard(base);
       done += 1;
       notify();
