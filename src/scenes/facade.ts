@@ -1,4 +1,5 @@
 import { requestMotionPermission } from '../state/motion';
+import type { PreloadHandle } from '../state/preload';
 
 export interface FacadeCallbacks {
   // Entra a la tienda: hace el efecto de "entrar a ConstruMart" y deja al
@@ -7,6 +8,9 @@ export interface FacadeCallbacks {
   // Reinicia el recorrido (borra el progreso). En el flujo sin menú, el reset
   // del visor entre usuarios vive acá, en el splash.
   onReset: () => void;
+  // Precarga de panorámicas: gatea el botón ENTRAR (queda en "Cargando…" hasta
+  // que el tier estándar de todas terminó de cargar).
+  preload: PreloadHandle;
 }
 
 // Splash de bienvenida. A diferencia de la versión VR (texto 3D de cámara fija),
@@ -43,7 +47,7 @@ function showFacadeOverlay(cb: FacadeCallbacks) {
         <p class="facade-sub">Recorré los pasillos de Construmart Arica en 360°.</p>
       </div>
       <div class="facade-actions">
-        <button id="facade-enter" class="facade-cta" type="button">Entrar a la tienda</button>
+        <button id="facade-enter" class="facade-cta is-loading" type="button" disabled>Cargando imágenes…</button>
         <button id="facade-reset" class="facade-reset" type="button">Reiniciar recorrido</button>
       </div>
     </div>
@@ -51,7 +55,24 @@ function showFacadeOverlay(cb: FacadeCallbacks) {
   `;
   document.body.appendChild(el);
 
-  el.querySelector('#facade-enter')!.addEventListener('click', () => {
+  const enterBtn = el.querySelector('#facade-enter') as HTMLButtonElement;
+
+  // Gate de carga: ENTRAR queda deshabilitado mostrando el progreso hasta que el
+  // tier estándar de todas las panorámicas terminó de cargar — así adentro no
+  // hay esperas ni placeholders. El hi-res sigue mejorando en background.
+  const unsubscribe = cb.preload.subscribe((done, total) => {
+    if (done < total) {
+      enterBtn.textContent = `Cargando imágenes… ${Math.round((done / total) * 100)}%`;
+    }
+  });
+  void cb.preload.ready.then(() => {
+    unsubscribe();
+    enterBtn.disabled = false;
+    enterBtn.classList.remove('is-loading');
+    enterBtn.textContent = 'Entrar a la tienda';
+  });
+
+  enterBtn.addEventListener('click', () => {
     // El tap es el gesto que iOS exige para habilitar el giroscopio.
     void requestMotionPermission();
     // Desvanecer el overlay mientras la transición 3D revela la tienda.

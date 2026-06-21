@@ -256,6 +256,10 @@ class Router {
       // para que la composición no se mueva en mobile/desktop. ENTRAR hace el
       // efecto de entrar a la tienda y deja al usuario en el primer pasillo.
       setLookControlsEnabled(false);
+      // Precargar las 360° del hall + pasillos mientras el usuario está en el
+      // splash. El tier estándar GATEA la entrada (el botón ENTRAR queda en
+      // "Cargando…" hasta que todas cargaron); el hi-res sigue en background.
+      const preload = preloadPanoramas(stops);
       renderFacade(root, {
         onEnter: () => void this.enterStore(),
         onReset: () => {
@@ -265,10 +269,8 @@ class Router {
           progress.reset();
           this.goFacade();
         },
+        preload,
       });
-      // Precargar las 360° del hall + pasillos mientras el usuario está en el
-      // splash, así entrar a la tienda y moverse entre pasillos es instantáneo.
-      preloadPanoramas(stops);
       return;
     }
 

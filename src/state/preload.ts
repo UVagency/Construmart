@@ -1,61 +1,95 @@
 import type { Aisle } from '../types';
 import { asset } from '../theme';
 
-let started = false;
+export interface PreloadHandle {
+  // Resuelve cuando el tier ESTÁNDAR de TODAS las panorámicas terminó de cargar.
+  // Es el gate para habilitar la entrada a la experiencia (sin esperas ni
+  // placeholders adentro). El hi-res sigue cargando en background, no lo bloquea.
+  ready: Promise<void>;
+  // Suscribe al progreso de la fase estándar. Llama al callback de inmediato con
+  // el valor actual y en cada avance. Devuelve una función para desuscribir.
+  subscribe: (cb: (done: number, total: number) => void) => () => void;
+}
+
+let handle: PreloadHandle | null = null;
 
 /**
- * Precarga (warm del HTTP cache) las panorámicas de todos los pasillos en
- * segundo plano, mientras el usuario está en el home. Así, al entrar a un
- * pasillo, la 360° ya está en cache y aparece al instante — clave con la
- * conectividad mala de los sitios de obra.
+ * Precarga (warm del HTTP cache) las panorámicas en dos fases, una a la vez (no
+ * saturar la conexión en sitios de obra):
+ *   1. Tier estándar (WebP ~1 MB, fallback JPG) — lo que se muestra al entrar a
+ *      cada pasillo. La promesa `ready` resuelve cuando TODAS terminaron: el
+ *      splash habilita ENTRAR recién ahí, así adentro no hay esperas.
+ *   2. Tier hi-res (`.hi.webp`) — en background tras la fase estándar; el sky
+ *      hace upgrade cuando está listo (aisle.ts). No bloquea la entrada.
+ * Mismo orden de formatos que aisle.ts: el navegador reusa el archivo cacheado
+ * cuando el sky pide el mismo `src`.
  *
- * Se baja una a la vez (no en paralelo) para no saturar la conexión, en dos
- * pasadas:
- *   1. Tier estándar (WebP ~1 MB, fallback JPG) — lo que se muestra al instante
- *      al entrar al pasillo. Prioritario.
- *   2. Tier hi-res (`.hi.webp` ~2 MB) — para el upgrade en background del sky y
- *      para que quede en el cache HTTP del visor para el próximo usuario.
- * Mismo orden de formatos que aisle.ts (`tryLoadPanorama`): el navegador reusa
- * el archivo cacheado cuando el sky pide el mismo `src`.
- *
- * Idempotente: corre una sola vez por sesión.
+ * Idempotente: corre una sola vez por sesión (devuelve siempre el mismo handle).
  */
-export function preloadPanoramas(aisles: Aisle[]): void {
-  if (started) return;
-  started = true;
+export function preloadPanoramas(aisles: Aisle[]): PreloadHandle {
+  if (handle) return handle;
 
   const bases = aisles.map((a) => asset(a.panorama).replace(/\.(jpe?g|png)$/i, ''));
-  let hiresPhase = false;
-  let i = 0;
+  const total = bases.length;
+  let done = 0;
+  const subs = new Set<(d: number, t: number) => void>();
+  const notify = () => subs.forEach((cb) => cb(done, total));
 
-  const next = () => {
-    if (i >= bases.length) {
-      if (hiresPhase) return; // terminaron las dos pasadas
-      hiresPhase = true; // pasa al tier hi-res
-      i = 0;
+  // Fase estándar, secuencial. `ready` resuelve cuando cargaron todas.
+  const ready = (async () => {
+    for (const base of bases) {
+      await loadStandard(base);
+      done += 1;
+      notify();
     }
-    const base = bases[i++];
+  })();
 
-    if (hiresPhase) {
+  // Fase hi-res en background, una vez listo el estándar. No bloquea el gate.
+  void ready.then(() => preloadHiRes(bases));
+
+  handle = {
+    ready,
+    subscribe: (cb) => {
+      subs.add(cb);
+      cb(done, total); // estado actual de inmediato
+      return () => {
+        subs.delete(cb);
+      };
+    },
+  };
+  return handle;
+}
+
+// Carga el tier estándar de una panorámica (webp, fallback jpg). Resuelve SIEMPRE
+// (aunque falle) para no trabar el gate por un asset roto o no soportado.
+function loadStandard(base: string): Promise<void> {
+  return new Promise((resolve) => {
+    const webp = new Image();
+    webp.onload = () => resolve();
+    webp.onerror = () => {
+      const jpg = new Image();
+      jpg.onload = () => resolve();
+      jpg.onerror = () => resolve();
+      jpg.src = `${base}.jpg`;
+    };
+    webp.src = `${base}.webp`;
+  });
+}
+
+// Baja el tier hi-res en background, secuencial. Sin trabar nada.
+function preloadHiRes(bases: string[]): Promise<void> {
+  return new Promise((resolve) => {
+    let i = 0;
+    const next = () => {
+      if (i >= bases.length) {
+        resolve();
+        return;
+      }
       const img = new Image();
       img.onload = next;
       img.onerror = next; // sin hi-res: seguir igual
-      img.src = `${base}.hi.webp`;
-      return;
-    }
-
-    const img = new Image();
-    img.onload = next;
-    img.onerror = () => {
-      // WebP falló (o no soportado): intenta el JPG y, pase lo que pase,
-      // sigue con la siguiente panorámica.
-      const fallback = new Image();
-      fallback.onload = next;
-      fallback.onerror = next;
-      fallback.src = `${base}.jpg`;
+      img.src = `${bases[i++]}.hi.webp`;
     };
-    img.src = `${base}.webp`;
-  };
-
-  next();
+    next();
+  });
 }
