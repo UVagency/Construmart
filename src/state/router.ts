@@ -157,19 +157,16 @@ class Router {
 
       await flyThrough(oldSky, newSky, direction);
 
-      // Quitar el cielo viejo y normalizar el nuevo a fondo común (depthTest on,
-      // render-order 0, opaco) para que los HUDs queden por delante. El material
-      // wholesale borra el src, así que lo recapturo antes y lo re-asiento (puede
-      // ser ya la hi-res si alcanzó a hacer upgrade en background).
+      // Quitar el cielo viejo y normalizar el nuevo a fondo común (opaco,
+      // depthTest on, render-order 0) para que los HUDs queden por delante.
+      // IMPORTANTE: update PARCIAL del material (objeto), no reescribirlo entero.
+      // El wholesale anterior borraba el mapa un frame y el src re-asignado con
+      // el mismo valor no lo recuperaba → flash blanco al cambiar de pasillo.
+      // Así conservamos color (#FFF) y la textura (estándar o hi-res) intactos.
       if (oldSky && oldSky.parentNode === root) root.removeChild(oldSky);
-      const currentSrc = newSky.getAttribute('src');
       newSky.setAttribute('position', '0 0 0');
       newSky.setAttribute('render-order', '0');
-      newSky.setAttribute(
-        'material',
-        'shader: flat; side: back; npot: true; opacity: 1; transparent: false; depthTest: true',
-      );
-      if (currentSrc) newSky.setAttribute('src', currentSrc);
+      (newSky as any).setAttribute('material', { opacity: 1, transparent: false, depthTest: true });
 
       this.current = { name: 'aisle', aisleId: targetId };
       setLookControlsEnabled(true);
@@ -220,17 +217,14 @@ class Router {
       await flyThrough(null, newSky, 'next');
 
       // Limpiar la fachada y normalizar el cielo a fondo común (HUDs por delante).
+      // Update PARCIAL del material (no reescribirlo entero): conserva el mapa y
+      // evita el flash blanco. Ver glideAisle.
       Array.from(root.children).forEach((c) => {
         if (c !== newSky) root.removeChild(c);
       });
-      const currentSrc = newSky.getAttribute('src');
       newSky.setAttribute('position', '0 0 0');
       newSky.setAttribute('render-order', '0');
-      newSky.setAttribute(
-        'material',
-        'shader: flat; side: back; npot: true; opacity: 1; transparent: false; depthTest: true',
-      );
-      if (currentSrc) newSky.setAttribute('src', currentSrc);
+      (newSky as any).setAttribute('material', { opacity: 1, transparent: false, depthTest: true });
 
       this.current = { name: 'aisle', aisleId: target.id };
       setLookControlsEnabled(true);
