@@ -7,6 +7,7 @@ import { progress } from './progress';
 import { fadeIn, fadeOut, flyThrough } from './transition';
 import { setLookControlsEnabled, resetLookOrientation } from './camera';
 import { preloadPanoramas } from './preload';
+import { warmupAFrame } from './warmup';
 import { track } from './analytics';
 
 const data = aislesDataRaw as AislesData;
@@ -250,9 +251,12 @@ class Router {
       // para que la composición no se mueva en mobile/desktop. ENTRAR hace el
       // efecto de entrar a la tienda y deja al usuario en el primer pasillo.
       setLookControlsEnabled(false);
+      // Pre-construir en A-Frame las fuentes + cartelería (ocultas) mientras se
+      // ve el splash, así al entrar no se cargan "elemento por elemento".
+      warmupAFrame();
       // Precargar las 360° del hall + pasillos mientras el usuario está en el
-      // splash. El tier estándar GATEA la entrada (el botón ENTRAR queda en
-      // "Cargando…" hasta que todas cargaron); el hi-res sigue en background.
+      // splash. El gate de ENTRAR espera el tier estándar de las panorámicas +
+      // los assets de UI (cartelería + fuentes); el hi-res sigue en background.
       const preload = preloadPanoramas(stops);
       renderFacade(root, {
         onEnter: () => void this.enterStore(),

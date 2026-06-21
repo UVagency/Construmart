@@ -1,5 +1,34 @@
 import type { Aisle } from '../types';
-import { asset } from '../theme';
+import { asset, ASSETS, FONTS } from '../theme';
+
+// Assets de UI (no panorámicas) que se usan al armar el primer pasillo: la
+// cartelería de los botones y los atlas de fuente del texto. Si no están en
+// cache, al entrar se ven cargar "elemento por elemento".
+const UI_IMAGES = [ASSETS.cartelStrip, ASSETS.stripes, ASSETS.logoWhite, ASSETS.logoM];
+const FONT_FNT = [FONTS.display, FONTS.eyebrow, FONTS.body];
+
+function warmImage(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = url;
+  });
+}
+
+// Calienta el cache de una fuente MSDF: el .fnt (lo baja A-Frame por XHR) y su
+// atlas .png (mismo nombre, misma carpeta).
+function warmFont(fntUrl: string): Promise<void> {
+  const png = fntUrl.replace(/\.fnt$/i, '.png');
+  return Promise.all([
+    fetch(fntUrl).then(() => undefined).catch(() => undefined),
+    warmImage(png),
+  ]).then(() => undefined);
+}
+
+function warmUiAssets(): Promise<void> {
+  return Promise.all([...UI_IMAGES.map(warmImage), ...FONT_FNT.map(warmFont)]).then(() => undefined);
+}
 
 export interface PreloadHandle {
   // Resuelve cuando el tier ESTÁNDAR de TODAS las panorámicas terminó de cargar.
@@ -35,8 +64,8 @@ export function preloadPanoramas(aisles: Aisle[]): PreloadHandle {
   const subs = new Set<(d: number, t: number) => void>();
   const notify = () => subs.forEach((cb) => cb(done, total));
 
-  // Fase estándar, secuencial. `ready` resuelve cuando cargaron todas.
-  const ready = (async () => {
+  // Fase estándar de panorámicas, secuencial.
+  const panoramasReady = (async () => {
     for (const base of bases) {
       await loadStandard(base);
       done += 1;
@@ -44,8 +73,12 @@ export function preloadPanoramas(aisles: Aisle[]): PreloadHandle {
     }
   })();
 
+  // El gate (`ready`) espera TAMBIÉN los assets de UI (cartelería + atlas de
+  // fuente), en paralelo, así al entrar nada se carga "elemento por elemento".
+  const ready = Promise.all([panoramasReady, warmUiAssets()]).then(() => undefined);
+
   // Fase hi-res en background, una vez listo el estándar. No bloquea el gate.
-  void ready.then(() => preloadHiRes(bases));
+  void panoramasReady.then(() => preloadHiRes(bases));
 
   handle = {
     ready,
