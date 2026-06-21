@@ -98,13 +98,36 @@ function loadPanorama(sky: HTMLElement, panoramaPath: string): Promise<void> {
     };
 
     const showStandard = (src: string) => {
-      // Reset del color a blanco: si queda el placeholderColor, multiplica la
-      // textura y la panorámica se ve teñida (verde/amarilla). El color solo
-      // debe verse mientras carga o si la carga falla.
-      sky.setAttribute('color', '#FFFFFF');
+      // Resolver (y por ende arrancar el fade-in del "vuelo") recién cuando la
+      // textura está REALMENTE aplicada al material — no al setear el src. Si
+      // resolvíamos antes, el cielo se fundía en blanco un instante mientras la
+      // textura terminaba de subir a la GPU → flash blanco al entrar al pasillo.
+      let resolved = false;
+      const finish = () => {
+        if (resolved) return;
+        resolved = true;
+        resolve();
+      };
+
+      sky.addEventListener(
+        'materialtextureloaded',
+        () => {
+          // Ya con textura aplicada: quitar el placeholderColor (que la tiñe).
+          sky.setAttribute('color', '#FFFFFF');
+          finish();
+          upgradeToHiRes();
+        },
+        { once: true },
+      );
+
+      // Red de seguridad: si el evento no llegara, no trabar la transición.
+      // Mantenemos el placeholderColor (no forzamos blanco) para no introducir
+      // el flash que justamente estamos evitando.
+      setTimeout(finish, 3000);
+
+      // El src se setea con el placeholderColor todavía puesto; el cielo queda
+      // invisible (opacity 0) durante la transición hasta que el fade lo revela.
       sky.setAttribute('src', src);
-      resolve();
-      upgradeToHiRes();
     };
 
     const tryFmt = (src: string, onLoad: () => void, onFail: () => void) => {
