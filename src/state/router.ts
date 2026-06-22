@@ -82,7 +82,6 @@ class Router {
   }
 
   goCredential() {
-    track('recorrido_completo');
     void this.go({ name: 'credential' });
   }
 
@@ -290,6 +289,10 @@ class Router {
 
     if (route.name === 'credential') {
       setLookControlsEnabled(false);
+      // Experiencia completa: los 6 pasillos visitados Y la pantalla final a la
+      // vista. Se emite al MONTARSE la credencial (no al tocar el CTA) para que
+      // el evento represente "se vio la pantalla final", no sólo la intención.
+      track('recorrido_completo');
       // "Volver al inicio" desde la credencial = fin del recorrido completo: el
       // visor pasa a la próxima persona, así que reiniciamos el progreso acá
       // mismo y volvemos al splash listo para empezar de cero (evita tener que
