@@ -18,6 +18,7 @@ npm run dev                 # Vite dev server on https://0.0.0.0:5173 (self-sign
 npm run build               # tsc (type-check, noEmit) then vite build → dist/
 npm run preview             # Serve the production build over HTTPS for device testing
 npm run optimize            # Re-encode panoramas/raw/*.{jpg,png,tiff} → public/panoramas/{name}.{jpg,webp,hi.webp} + lowres/
+npm run optimize:lossless   # Same pipeline, lossless webp (larger files; for masters that must not degrade)
 npm run gen-placeholders    # Regenerate synthetic 360° placeholders from aisles.json (only if a panorama is missing)
 npm run fonts:fetch         # Download source TTFs (Barlow Condensed, Inter) into scripts/fonts-src/ (gitignored)
 npm run gen-fonts           # Rebuild the MSDF font atlases in public/brand/fonts/ (needs fonts:fetch first)
@@ -48,14 +49,17 @@ The VR mother selects by **gaze + dwell** (a center reticle with `cursor="fuse:t
 - `transition.ts` — `fadeIn/fadeOut` (the `#fader` plane) and `flyThrough(oldSky, newSky, dir)` (the no-black aisle move: camera stays, the sky **spheres** move, shrunk to `FLY_RADIUS` to amplify optical flow).
 - `motion.ts` — `requestMotionPermission()` (iOS 13+ `DeviceOrientation/Motion.requestPermission`). **Mobile-only addition**, called from the facade ENTRAR tap (the required user gesture) so the aisles' gyro works on iOS. No-op elsewhere; never blocks the flow.
 - `preload.ts` — warms the HTTP cache of all panoramas (standard tier then hi-res) while the user is on the facade, so entering/moving is instant on bad job-site connectivity.
-- `analytics.ts` — thin GA4 `track()` wrapper; silent no-op if gtag is absent.
+- `warmup.ts` — `warmupAFrame()` mounts the MSDF font atlases + button signage texture as `visible:false` entities during the splash, so A-Frame runs their `init` (cache warm) before the first aisle and they don't pop in element-by-element. Idempotent; parented to `<a-scene>` (not `#scene-root`) so it survives route swaps.
+- `analytics.ts` — thin GA4 `track()` wrapper; silent no-op if gtag is absent. Events emitted: `entrar_tienda`, `ver_pasillo`, `recorrido_completo` (fired when the credential screen mounts), `reiniciar`.
 
 ### Scenes (`src/scenes/`)
-Each `render*(root, …, callbacks)` builds A-Frame entities imperatively and appends to the root. Scenes **never import the router or progress** — they take callbacks; `router.ts` is the one place wiring callbacks to navigation/progress. Keep that boundary.
-- `facade.ts` — flat welcome splash (brand card over navy). ENTRAR (`requestMotionPermission()` then `onEnter` ⇒ `enterStore()`) and the "Reiniciar recorrido" reset. Look-controls off.
+Each `render*(root, …, callbacks)` builds the scene imperatively and appends to the root. Scenes **never import the router or progress** — they take callbacks; `router.ts` is the one place wiring callbacks to navigation/progress. Keep that boundary.
+
+**Two rendering styles coexist.** Aisles are pure A-Frame (3D entities). The **facade and credential are HTML DOM overlays** (`<div class="cm-overlay">` appended to `document.body`, styled in `src/styles.css`) over a plain navy `<a-sky>` — a **mobile divergence from the VR mother**, which renders these as fixed-camera 3D text. The overlay is full-bleed, naturally responsive in portrait, and fades itself out (`is-leaving`) on exit. If you re-port facade/credential copy from the mother, edit the overlay HTML strings here, not 3D `makeText()` entities.
+- `facade.ts` — welcome splash overlay (brand card over navy). ENTRAR (`requestMotionPermission()` then `onEnter` ⇒ `enterStore()`) and the "Reiniciar recorrido" reset. Look-controls off.
 - `aisle.ts` — `createAisleSky()` paints the `<a-sky>` and runs progressive panorama load (`placeholderColor` → standard `.webp`/`.jpg` → background upgrade to `.hi.webp`). `buildAisleHuds()` mounts the nav menu + prev/next.
 - `navmenu.ts` — world-space nav HUD. Collapsed `[← ANTERIOR] (C) [SIGUIENTE →]`; expand the C ⇒ 6 aisle tiles (direct access) + a discreet SALIR. Dynamic content is **rebuilt** on toggle (the raycaster doesn't cull invisible `.clickable`). `?tune` in the URL shows the dev heading calibrator.
-- `credential.ts` — completion screen ("6/6" badge, return-to-start CTA).
+- `credential.ts` — completion overlay ("6/6" badge, return-to-start CTA). Mounting it emits `recorrido_completo`.
 
 ### Components & theme
 - `src/components/text-msdf.ts` — **not** a component; `makeText()` builds an `<a-text>` forcing `shader: msdf; negate: false`. Without those, custom `.fnt` atlases fall back to the bitmap shader and glyphs render as solid rectangles. **Always create text through `makeText()`.**
@@ -83,8 +87,10 @@ This repo is a **fork-by-copy** of the mother, diverging only where mobile needs
 | `src/main.ts` | imports `tap-select` instead of `gaze-cursor` |
 | `src/components/tap-select.ts` | **new** (replaces `gaze-cursor.ts`, which is absent here) |
 | `src/state/motion.ts` | **new** (iOS gyro permission) |
-| `src/scenes/facade.ts` | ENTRAR requests motion permission; hint copy "Tocá para entrar" |
+| `src/scenes/facade.ts` | HTML overlay (vs mother's 3D text); ENTRAR requests motion permission; hint copy "Tocá para entrar" |
+| `src/scenes/credential.ts` | HTML overlay (vs mother's 3D text) |
+| `src/styles.css` | **new**/diverged — the `cm-overlay` / `facade-*` styles that drive the facade + credential overlays |
 | `vite.config.ts` | `base: '/'` always (mother uses `/vr/` on build) |
 | `package.json` | name `construmart-mobile` |
 
-Everything else (scenes, router, transitions, theme, panoramas, fonts, optimize/font scripts) is a straight copy — change it in the mother first when it's shared behavior, then re-port.
+Everything else (`aisle.ts`, `navmenu.ts`, router, transitions, theme, panoramas, fonts, optimize/font scripts) is a straight copy — change it in the mother first when it's shared behavior, then re-port. The facade/credential **copy** is shared (port the text), but their **rendering** is not (overlay here, 3D there).
