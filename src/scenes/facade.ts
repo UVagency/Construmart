@@ -44,7 +44,7 @@ function showFacadeOverlay(cb: FacadeCallbacks) {
       </div>
       <div class="facade-body">
         <h1 class="facade-title">Conoce la tienda<br>antes de que abra</h1>
-        <p class="facade-sub">Recorré los pasillos de Construmart Arica en 360°.</p>
+        <p class="facade-sub">Recorre los pasillos de Construmart Arica en 360°.</p>
       </div>
       <div class="facade-actions">
         <button id="facade-enter" class="facade-cta is-loading" type="button" disabled>Cargando imágenes…</button>

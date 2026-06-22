@@ -29,7 +29,7 @@ export function renderCredential(root: HTMLElement, cb: CredentialCallbacks) {
           <span class="cm-badge-num">6/6</span>
           <span class="cm-badge-label">Pasillos</span>
         </div>
-        <h1 class="facade-title">Aún queda mucho<br>por descubrir!</h1>
+        <h1 class="facade-title">¡Aún queda mucho<br>por descubrir!</h1>
         <p class="facade-sub">Vive la experiencia completa este 23 de julio en la gran reinauguración de Construmart Arica.</p>
       </div>
       <div class="facade-actions">
